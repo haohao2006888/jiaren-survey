@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>家人学习调研 · 伟大印记</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f0e8;color:#2c2416;line-height:1.8;min-height:100vh}
+.header{background:linear-gradient(135deg,#2c2416,#4a3828);color:#fdf8f0;padding:36px 24px 44px;text-align:center}
+.header h1{font-size:25px;margin-bottom:4px;letter-spacing:1px}
+.header .brand{font-size:13px;opacity:.6;letter-spacing:3px;margin-bottom:14px}
+.header p{font-size:15px;opacity:.78;max-width:420px;margin:0 auto}
+.browser-notice{text-align:center;background:#fff3cd;color:#856404;padding:12px 20px;font-size:15px;font-weight:600;border-bottom:1px solid #ffc107}
+.wrap{max-width:640px;margin:0 auto;padding:24px 20px 80px}
+
+/* Card */
+.q-card{background:#fff;border-radius:12px;padding:28px 22px;margin:20px 0;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.q-card.founder-card{border:2px dashed #c9a96e;background:linear-gradient(135deg,#fffef9,#fdf8f0)}
+.q-num{display:inline-block;background:#e8dcc8;color:#4a3828;font-size:13px;font-weight:700;padding:4px 16px;border-radius:14px;margin-bottom:10px}
+.q-title{font-size:17px;font-weight:700;color:#1a1206;margin-bottom:6px}
+.q-guide{font-size:14px;color:#8c7a5c;margin-bottom:20px;line-height:1.7;padding:12px 16px;background:#fdf8f0;border-radius:8px;border-left:3px solid #c9a96e}
+.q-guide .guide-icon{font-size:20px;margin-right:6px;vertical-align:-2px}
+.founder-label{display:inline-block;background:#c9a96e;color:#fff;font-size:11px;padding:2px 10px;border-radius:10px;margin-left:8px;vertical-align:middle;letter-spacing:1px}
+
+/* Inputs */
+.inline-input{width:100%;padding:14px;font-size:16px;border:1.6px solid #e8dcc8;border-radius:10px;background:#fdf8f0;font-family:inherit;margin-top:8px;transition:border-color .2s}
+.inline-input:focus{outline:none;border-color:#c9a96e;background:#fff}
+.inline-input:first-child{margin-top:0}
+
+/* Voice Bar */
+.voice-bar{display:flex;align-items:center;gap:10px;padding:14px 18px;margin:12px 0 16px;border-radius:28px;background:#fff;border:1.8px solid #d4c5a0;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:all .25s}
+.voice-bar:active{background:#f5f0e8}
+.vb-icon{font-size:24px;flex-shrink:0;transition:transform .2s}
+.vb-text{font-size:15px;color:#6b5c3e;font-weight:500;flex:1}
+.vb-status{font-size:12px;color:#8c7a5c;flex-shrink:0}
+.vb-wave{display:none;gap:3px;align-items:flex-end;height:28px;flex-shrink:0}
+.vb-wave .vb-dot{width:4px;border-radius:2px;background:#e53935;animation:vbWav 0.8s ease-in-out infinite}
+.vb-wave .vb-dot:nth-child(2){animation-delay:0.15s}
+.vb-wave .vb-dot:nth-child(3){animation-delay:0.3s}
+.vb-wave .vb-dot:nth-child(4){animation-delay:0.45s}
+@keyframes vbWav{0%,100%{height:8px}50%{height:24px}}
+.voice-bar.recording{background:#fff5f5;border-color:#e53935;box-shadow:0 0 0 4px rgba(229,57,53,.1)}
+.voice-bar.recording .vb-icon{animation:vbPulse 0.6s ease-in-out infinite}
+.voice-bar.recording .vb-text{color:#c62828}
+.voice-bar.recording .vb-wave{display:flex}
+.voice-bar.recording .vb-status{color:#c62828;font-weight:600}
+.voice-bar.has-audio{border-color:#2e7d32;background:#f1f8e9}
+.voice-bar.has-audio .vb-status{color:#2e7d32}
+@keyframes vbPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+
+/* Audio Playback */
+.audio-playback{display:none;margin-top:8px;padding:8px 14px;background:#f1f8e9;border-radius:20px;align-items:center;gap:10px}
+.audio-playback.show{display:flex}
+.audio-playback audio{flex:1;height:32px}
+.audio-playback .ap-dur{font-size:12px;color:#6b5c3e;flex-shrink:0}
+
+textarea{width:100%;min-height:90px;border:1.6px solid #e8dcc8;border-radius:10px;padding:14px;font-size:16px;font-family:inherit;resize:vertical;background:#fdf8f0;line-height:1.7;transition:border-color .2s}
+textarea:focus{outline:none;border-color:#c9a96e;background:#fff}
+textarea.founder-textarea{min-height:120px;background:#fffef9}
+
+/* Submit */
+.submit-wrap{text-align:center;margin:32px 0}
+.btn-submit{background:#2c2416;color:#fdf8f0;border:none;padding:16px 52px;font-size:18px;font-weight:700;border-radius:30px;cursor:pointer;transition:all .2s;letter-spacing:1px}
+.btn-submit:active{background:#4a3828;transform:scale(.97)}
+.btn-submit:disabled{background:#c9a96e;cursor:not-allowed;transform:none}
+.submit-status{text-align:center;margin:12px 0;font-size:14px;min-height:22px}
+.submit-status.error{color:#c62828}
+.submit-status.success{color:#2e7d32}
+.thanks{display:none;text-align:center;padding:60px 24px}
+.thanks.show{display:block}
+.thanks h2{font-size:28px;color:#1a1206;margin-bottom:16px}
+.thanks p{font-size:17px;color:#4a3828}
+.footer{text-align:center;padding:24px;font-size:13px;color:#8c7a5c;border-top:1px solid #e8dcc8;margin-top:40px}
+
+@media(max-width:480px){
+  .header h1{font-size:21px}
+  .wrap{padding:16px 14px 80px}
+  .q-card{padding:20px 16px}
+}
+</style>
+</head>
+<body>
+
+<div class="browser-notice">⚠️ 请用浏览器打开，微信内不支持语音输入。可点右上角「在浏览器中打开」</div>
+<div class="header">
+<h1>家人学习调研</h1>
+<div class="brand">伟大印记</div>
+<p>请用语音说出你的真实想法<br>每段录音都会被认真聆听</p>
+</div>
+
+<div class="wrap" id="questions">
+
+<!-- ====== 身份信息 ====== -->
+<div class="q-card">
+<div class="q-num">你的信息</div>
+<div class="q-title">请告诉我们你是谁</div>
+<div class="q-guide"><span class="guide-icon">📝</span>方便后续联系与回访，至少填写姓名</div>
+<input class="inline-input" id="userName" placeholder="你的名字 *" maxlength="50">
+<input class="inline-input" id="userContact" placeholder="手机号 / 微信号（选填）" maxlength="60">
+</div>
+
+<!-- ====== 第一部分：经典原文 ====== -->
+<div class="q-card">
+<div class="q-num">第一部分</div>
+<div class="q-title">读到经典的原文</div>
+<div class="q-guide">
+<span class="guide-icon">🎙️</span><strong>语音引导：</strong>请朗读你最近读到的一段经典原文。可以是《道德经》《论语》《金刚经》《心经》或任何触动过你的经典篇章。慢慢读，不用急。
+</div>
+<div class="voice-bar" id="vb-part1" data-part="1">
+<span class="vb-icon">🎤</span>
+<span class="vb-text">点我开始录音（最长90秒）</span>
+<span class="vb-wave"><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span></span>
+<span class="vb-status"></span>
+</div>
+<div class="audio-playback" id="ap-part1">
+<audio id="audio-part1" controls></audio>
+<span class="ap-dur" id="dur-part1"></span>
+</div>
+<textarea id="text-part1" placeholder="语音识别的内容会出现在这里，你也可以手动修改..."></textarea>
+</div>
+
+<!-- ====== 第二部分：读后智慧 ====== -->
+<div class="q-card">
+<div class="q-num">第二部分</div>
+<div class="q-title">读后理解的智慧</div>
+<div class="q-guide">
+<span class="guide-icon">💡</span><strong>语音引导：</strong>读完这段经典，你领悟到了什么？它给你带来了怎样的启发或智慧？请用自己的话说出来。
+</div>
+<div class="voice-bar" id="vb-part2" data-part="2">
+<span class="vb-icon">🎤</span>
+<span class="vb-text">点我开始录音（最长90秒）</span>
+<span class="vb-wave"><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span></span>
+<span class="vb-status"></span>
+</div>
+<div class="audio-playback" id="ap-part2">
+<audio id="audio-part2" controls></audio>
+<span class="ap-dur" id="dur-part2"></span>
+</div>
+<textarea id="text-part2" placeholder="语音识别的内容会出现在这里，你也可以手动修改..."></textarea>
+</div>
+
+<!-- ====== 第三部分：人生联想 ====== -->
+<div class="q-card">
+<div class="q-num">第三部分</div>
+<div class="q-title">人生中的智慧联想</div>
+<div class="q-guide">
+<span class="guide-icon">🔗</span><strong>语音引导：</strong>这个智慧让你联想到了生活中的什么场景？请描述一个具体的经历——当时发生了什么，你是怎么做的，如果以后遇到类似的事情，你会怎么做？
+</div>
+<div class="voice-bar" id="vb-part3" data-part="3">
+<span class="vb-icon">🎤</span>
+<span class="vb-text">点我开始录音（最长90秒）</span>
+<span class="vb-wave"><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span></span>
+<span class="vb-status"></span>
+</div>
+<div class="audio-playback" id="ap-part3">
+<audio id="audio-part3" controls></audio>
+<span class="ap-dur" id="dur-part3"></span>
+</div>
+<textarea id="text-part3" placeholder="语音识别的内容会出现在这里，你也可以手动修改..."></textarea>
+</div>
+
+<!-- ====== 第四部分：创始人填写 ====== -->
+<div class="q-card founder-card">
+<div class="q-num">第四部分</div>
+<div class="q-title">创始人批注 <span class="founder-label">创始人填写</span></div>
+<div class="q-guide">
+<span class="guide-icon">✍️</span>此处由创始人阅读受访者内容后填写。受访者可留空。
+</div>
+<textarea id="text-part4" class="founder-textarea" placeholder="创始人阅读后在此批注..."></textarea>
+</div>
+
+<!-- ====== 提交 ====== -->
+<div class="submit-status" id="submitStatus"></div>
+<div class="submit-wrap">
+<button class="btn-submit" id="btnSubmit" onclick="submitSurvey()">✓ 提交</button>
+</div>
+</div>
+
+<div class="thanks" id="thanks">
+<h2>感谢你的分享 🙏</h2>
+<p>你的声音和故事都已经被妥善保存。</p>
+<p style="margin-top:20px;font-size:15px">— 伟大印记</p>
+</div>
+
+<div class="footer">家人学习调研工具 · 伟大印记 · 2026</div>
+
+<script>
+// ===== Config =====
+var API_URL = 'https://serene-cricket-35.haohao2006888.deno.net/';
+var MAX_DURATION = 90; // 最长录音秒数
+
+// ===== Audio Recording State =====
+var mediaRecorder = null;
+var audioChunks = [];
+var currentPart = null;
+var currentVoiceBar = null;
+var recognition = null;
+var isRecording = false;
+var countdownTimer = null;
+var secondsLeft = 0;
+
+// Store audio blobs per part
+var audioBlobs = { 1: null, 2: null, 3: null };
+
+// ===== Voice Bar: Start/Stop Recording =====
+document.querySelectorAll('.voice-bar').forEach(function(bar) {
+  bar.addEventListener('click', function() {
+    var part = bar.getAttribute('data-part');
+    if (!part) return;
+    if (bar.classList.contains('recording')) {
+      stopRecording(bar, part);
+    } else {
+      startRecording(bar, part);
+    }
+  });
+});
+
+function startRecording(bar, part) {
+  // Stop any ongoing recording
+  if (currentVoiceBar && currentVoiceBar !== bar) {
+    stopRecording(currentVoiceBar, currentPart);
+  }
+
+  // Check MediaRecorder support
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('您的浏览器不支持录音功能。请用 Safari 或 Chrome 浏览器打开。');
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function(stream) {
+      // Start MediaRecorder
+      audioChunks = [];
+      var mimeType = 'audio/webm';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/mp4';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = '';
+        }
+      }
+      var opts = {};
+      if (mimeType) opts.mimeType = mimeType;
+      mediaRecorder = new MediaRecorder(stream, opts);
+
+      mediaRecorder.ondataavailable = function(e) {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = function() {
+        // Stop all tracks
+        stream.getTracks().forEach(function(t) { t.stop(); });
+        // Create audio blob and playback
+        var blob = new Blob(audioChunks, { type: mimeType || 'audio/webm' });
+        audioBlobs[part] = blob;
+        showAudioPlayback(part, blob);
+      };
+
+      mediaRecorder.start();
+      currentPart = part;
+      currentVoiceBar = bar;
+
+      // Start Speech Recognition
+      startSpeechRecognition(bar, part);
+
+      // Update UI
+      bar.classList.add('recording');
+      bar.querySelector('.vb-icon').textContent = '🔴';
+      bar.querySelector('.vb-text').textContent = '正在录音... 点我停止';
+      isRecording = true;
+
+      // Start countdown
+      secondsLeft = MAX_DURATION;
+      bar.querySelector('.vb-status').textContent = formatTime(secondsLeft);
+      countdownTimer = setInterval(function() {
+        secondsLeft--;
+        if (secondsLeft <= 0) {
+          bar.querySelector('.vb-status').textContent = '⏰ 时间到';
+          stopRecording(bar, part);
+        } else if (secondsLeft <= 10) {
+          bar.querySelector('.vb-status').textContent = '⚠ ' + formatTime(secondsLeft);
+        } else {
+          bar.querySelector('.vb-status').textContent = formatTime(secondsLeft);
+        }
+      }, 1000);
+
+      // Hide previous playback
+      var ap = document.getElementById('ap-part' + part);
+      ap.classList.remove('show');
+    })
+    .catch(function(err) {
+      console.error('Microphone error:', err);
+      alert('无法访问麦克风，请检查浏览器权限设置。');
+    });
+}
+
+function stopRecording(bar, part) {
+  // Clear countdown
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+
+  // Stop MediaRecorder
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+  mediaRecorder = null;
+
+  // Stop Speech Recognition
+  stopSpeechRecognition();
+
+  // Update UI
+  if (bar) {
+    bar.classList.remove('recording');
+    bar.querySelector('.vb-icon').textContent = '🎤';
+    bar.querySelector('.vb-text').textContent = '点我重新录音（最长90秒）';
+    bar.querySelector('.vb-status').textContent = '';
+    isRecording = false;
+
+    if (audioBlobs[part]) {
+      bar.classList.add('has-audio');
+      bar.querySelector('.vb-status').textContent = '✓ 已录音';
+    }
+  }
+
+  currentPart = null;
+  currentVoiceBar = null;
+}
+
+function formatTime(sec) {
+  var m = Math.floor(sec / 60);
+  var s = sec % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+// ===== Speech Recognition =====
+function startSpeechRecognition(bar, part) {
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return; // Speech not supported, just record audio
+
+  recognition = new SR();
+  recognition.lang = 'zh-CN';
+  recognition.interimResults = true;
+  recognition.continuous = true;
+
+  var textarea = document.getElementById('text-part' + part);
+
+  recognition.onresult = function(e) {
+    var t = '';
+    for (var i = e.resultIndex; i < e.results.length; i++) {
+      t += e.results[i][0].transcript;
+    }
+    textarea.value = t;
+  };
+
+  recognition.onerror = function(e) {
+    console.warn('Speech recognition error:', e.error);
+  };
+
+  recognition.onend = function() {
+    // Speech recognition ended (may be auto or manual)
+  };
+
+  recognition.start();
+}
+
+function stopSpeechRecognition() {
+  if (recognition) {
+    try { recognition.stop(); } catch(e) {}
+    recognition = null;
+  }
+}
+
+// ===== Audio Playback =====
+function showAudioPlayback(part, blob) {
+  var ap = document.getElementById('ap-part' + part);
+  var audio = document.getElementById('audio-part' + part);
+  var durEl = document.getElementById('dur-part' + part);
+
+  var url = URL.createObjectURL(blob);
+  // Revoke old URL if exists
+  if (audio.dataset.blobUrl) {
+    URL.revokeObjectURL(audio.dataset.blobUrl);
+  }
+  audio.src = url;
+  audio.dataset.blobUrl = url;
+
+  // Show duration when metadata loads
+  audio.onloadedmetadata = function() {
+    var mins = Math.floor(audio.duration / 60);
+    var secs = Math.floor(audio.duration % 60);
+    durEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+  };
+
+  ap.classList.add('show');
+}
+
+// ===== Blob to Base64 =====
+function blobToBase64(blob) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onloadend = function() {
+      // reader.result is "data:audio/webm;base64,..."
+      resolve(reader.result);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// ===== Submit =====
+var isSubmitting = false;
+
+function setStatus(msg, type) {
+  var el = document.getElementById('submitStatus');
+  el.textContent = msg;
+  el.className = 'submit-status ' + (type || '');
+}
+
+async function submitSurvey() {
+  if (isSubmitting) return;
+
+  var name = document.getElementById('userName').value.trim();
+  if (!name) {
+    setStatus('请至少填写你的名字', 'error');
+    document.getElementById('userName').focus();
+    return;
+  }
+
+  // Check at least one part has content
+  var hasContent = false;
+  for (var i = 1; i <= 3; i++) {
+    if (document.getElementById('text-part' + i).value.trim()) hasContent = true;
+    if (audioBlobs[i]) hasContent = true;
+  }
+  if (!hasContent) {
+    setStatus('至少完成一个部分的录音或填写再提交', 'error');
+    return;
+  }
+
+  isSubmitting = true;
+  var btn = document.getElementById('btnSubmit');
+  btn.textContent = '提交中...';
+  btn.disabled = true;
+  setStatus('正在处理录音与提交...', '');
+
+  try {
+    var payload = {
+      name: name,
+      contact: document.getElementById('userContact').value.trim(),
+      time: new Date().toISOString(),
+      ua: navigator.userAgent
+    };
+
+    // Add each part
+    for (var i = 1; i <= 4; i++) {
+      var text = document.getElementById('text-part' + i).value.trim();
+      payload['part' + i + '_text'] = text;
+
+      // Convert audio to base64 for parts 1-3
+      if (i <= 3 && audioBlobs[i]) {
+        setStatus('正在处理第' + i + '段录音...', '');
+        var base64 = await blobToBase64(audioBlobs[i]);
+        payload['part' + i + '_audio'] = base64;
+        payload['part' + i + '_audio_size'] = audioBlobs[i].size;
+      }
+    }
+
+    setStatus('正在提交到服务器...', '');
+    submitToGitHub(payload, 0, btn);
+
+  } catch (err) {
+    console.error('Prepare error:', err);
+    setStatus('录音处理失败，请重试', 'error');
+    btn.textContent = '重新提交';
+    btn.disabled = false;
+    isSubmitting = false;
+  }
+}
+
+function submitToGitHub(payload, retryCount, btn) {
+  // Calculate payload size for logging
+  var payloadStr = JSON.stringify(payload);
+  var sizeMB = (payloadStr.length / (1024 * 1024)).toFixed(2);
+  console.log('Submitting payload size:', sizeMB, 'MB');
+
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: payloadStr
+  })
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(result) {
+      if (result.success) {
+        document.getElementById('questions').style.display = 'none';
+        document.getElementById('thanks').classList.add('show');
+        setStatus('', '');
+        clearLocalPending();
+      } else if (result.error && result.error.indexOf('sha') >= 0 && retryCount < 3) {
+        setStatus('提交冲突，自动重试... (' + (retryCount + 1) + '/3)', '');
+        setTimeout(function() { submitToGitHub(payload, retryCount + 1, btn); }, 800);
+      } else {
+        throw new Error(result.error || 'Unknown error');
+      }
+    })
+    .catch(function(err) {
+      console.error('Submit error:', err);
+      if (retryCount < 3) {
+        setStatus('提交失败，正在重试... (' + (retryCount + 1) + '/3)', 'error');
+        setTimeout(function() { submitToGitHub(payload, retryCount + 1, btn); }, 1500);
+      } else {
+        setStatus('网络不通，答案已暂存本地，打开网页会自动重试', 'error');
+        saveLocal(payload);
+        btn.textContent = '重新提交';
+        btn.disabled = false;
+        isSubmitting = false;
+      }
+    });
+}
+
+// ===== Local Fallback =====
+function saveLocal(payload) {
+  try {
+    var saved = JSON.parse(localStorage.getItem('jiaren_survey_pending') || '[]');
+    saved.push(payload);
+    localStorage.setItem('jiaren_survey_pending', JSON.stringify(saved));
+  } catch(e) {}
+}
+
+function clearLocalPending() {
+  try { localStorage.removeItem('jiaren_survey_pending'); } catch(e) {}
+}
+
+// Retry pending on load
+(function() {
+  try {
+    var pending = JSON.parse(localStorage.getItem('jiaren_survey_pending') || '[]');
+    if (pending.length > 0) {
+      setStatus('检测到未提交的答案，正在重新提交...', '');
+      pending.forEach(function(p) {
+        var fakeBtn = { textContent: '', disabled: false };
+        submitToGitHub(p, 0, fakeBtn);
+      });
+    }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
