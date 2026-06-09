@@ -391,12 +391,17 @@ document.querySelector('.btn-back').textContent = '← 返回';
 
 function backToDashboard() {
 stopAllRecording();
+editingSubmission = null;
 showDashboard();
 }
 
 function doLogout() {
 stopAllRecording();
 currentUser = null;
+editingSubmission = null;
+window._dashboardSubs = null;
+audioBlobs = {};
+resetSurveyForm();
 document.getElementById('loginName').value = '';
 document.getElementById('loginContact').value = '';
 document.getElementById('browserNotice').style.display = 'none';
