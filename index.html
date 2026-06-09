@@ -545,6 +545,10 @@ currentVoiceBar = null;
 function startSpeechRecognition(bar, part) {
 var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (!SR) return;
+
+// Stop any already-running recognition (avoids overlapping sessions)
+if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+
 recognition = new SR();
 recognition.lang = 'zh-CN';
 recognition.interimResults = true;
@@ -552,41 +556,48 @@ recognition.continuous = true;
 var textareaId = (part === 'bio') ? 'text-bio' : 'text-part' + part;
 var textarea = document.getElementById(textareaId);
 
-// Save existing text as base (user may have typed manually)
-var baseText = textarea ? textarea.value : '';
+// userText = whatever was in the box BEFORE this recording session
+// speechFinal = all finalized speech recognized DURING this session
+var userText = textarea ? textarea.value : '';
+var speechFinal = '';
+
+textarea.setAttribute('data-speech-active', '1');
 
 recognition.onresult = function(e) {
-var finalText = '';
-var interimText = '';
-for (var i = 0; i < e.results.length; i++) {
+var newFinal = '';
+var interim = '';
+
+// Only process new results (e.resultIndex onwards)
+for (var i = e.resultIndex; i < e.results.length; i++) {
 var r = e.results[i];
 if (r.isFinal) {
-finalText += r[0].transcript;
+newFinal += r[0].transcript;
 } else {
-interimText += r[0].transcript;
+interim += r[0].transcript;
 }
 }
+
+if (newFinal) speechFinal += newFinal;
+
 if (textarea) {
-textarea.value = baseText + finalText + interimText;
+textarea.value = userText + speechFinal + interim;
 textarea.scrollTop = textarea.scrollHeight;
 }
 };
+
 recognition.onend = function() {
-// On end, merge final speech text into base
-if (textarea) {
-var finalText = '';
-// Re-read current text, stripping interim
-var currentVal = textarea.value;
-// Just keep whatever is currently displayed as the new base
-// (interim text from onresult was already in the value)
-textarea.setAttribute('data-speech-active', '0');
-}
-};
-recognition.onerror = function(e) {
-console.warn('Speech error:', e.error);
-// On error, keep whatever text we have
+// Keep text as-is. If browser auto-restarts (continuous=true),
+// speechFinal still holds accumulated text and userText stays.
+// The textarea already contains: userText + speechFinal (no interim)
 if (textarea) textarea.setAttribute('data-speech-active', '0');
 };
+
+recognition.onerror = function(e) {
+console.warn('SpeechRecognition error:', e.error);
+// On 'no-speech' or 'aborted', keep whatever text was recognized
+if (textarea) textarea.setAttribute('data-speech-active', '0');
+};
+
 recognition.start();
 }
 
