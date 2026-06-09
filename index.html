@@ -14,6 +14,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .header p{font-size:15px;opacity:.78;max-width:420px;margin:0 auto}
 .view{display:none}
 .view.active{display:block}
+
 /* ===== Login ===== */
 .login-wrap{max-width:440px;margin:40px auto;padding:0 20px}
 .login-card{background:#fff;border-radius:14px;padding:32px 24px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
@@ -25,6 +26,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .lc-hint{font-size:13px;color:#8c7a5c;margin-top:-8px;margin-bottom:16px}
 .btn-primary{width:100%;padding:16px;background:#2c2416;color:#fdf8f0;border:none;border-radius:12px;font-size:18px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s}
 .btn-primary:active{background:#4a3828;transform:scale(.98)}
+
 /* ===== Dashboard ===== */
 .dash-wrap{max-width:640px;margin:0 auto;padding:20px}
 .dash-user{background:#fff;border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
@@ -42,6 +44,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .history-item .hi-preview{font-size:15px;color:#2c2416;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .history-item .hi-parts{font-size:12px;color:#c9a96e;margin-top:6px}
 .empty-history{text-align:center;padding:40px 20px;color:#8c7a5c;font-size:15px}
+
 /* ===== Survey ===== */
 .survey-wrap{max-width:640px;margin:0 auto;padding:24px 20px 80px}
 .q-card{background:#fff;border-radius:12px;padding:28px 22px;margin:20px 0;box-shadow:0 2px 8px rgba(0,0,0,.05)}
@@ -55,6 +58,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .inline-input{width:100%;padding:14px;font-size:16px;border:1.6px solid #e8dcc8;border-radius:10px;background:#fdf8f0;font-family:inherit;margin-top:8px;transition:border-color .2s}
 .inline-input:focus{outline:none;border-color:#c9a96e;background:#fff}
 .inline-input:first-child{margin-top:0}
+
 .voice-bar{display:flex;align-items:center;gap:10px;padding:14px 18px;margin:12px 0 16px;border-radius:28px;background:#fff;border:1.8px solid #d4c5a0;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:all .25s}
 .voice-bar:active{background:#f5f0e8}
 .vb-icon{font-size:24px;flex-shrink:0}
@@ -77,13 +81,16 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .voice-bar.has-audio .vb-delete{display:inline-block}
 .vb-delete:active{background:#ffebee}
 @keyframes vbPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+
 .audio-playback{display:none;margin-top:8px;padding:8px 14px;background:#f1f8e9;border-radius:20px;align-items:center;gap:10px}
 .audio-playback.show{display:flex}
 .audio-playback audio{flex:1;height:32px}
 .audio-playback .ap-dur{font-size:12px;color:#6b5c3e;flex-shrink:0}
+
 textarea{width:100%;min-height:120px;max-height:300px;border:1.6px solid #e8dcc8;border-radius:10px;padding:14px;font-size:16px;font-family:inherit;resize:vertical;background:#fdf8f0;line-height:1.7;overflow-y:auto;transition:border-color .2s;-webkit-overflow-scrolling:touch}
 textarea:focus{outline:none;border-color:#c9a96e;background:#fff}
 textarea.founder-textarea{min-height:100px;background:#fffef9}
+
 .btn-row{display:flex;gap:12px;margin:24px 0;justify-content:center}
 .btn-back{flex:1;padding:14px;background:#fff;color:#4a3828;border:1.6px solid #e8dcc8;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;max-width:160px}
 .btn-submit{flex:1;padding:14px;background:#2c2416;color:#fdf8f0;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;max-width:200px;letter-spacing:1px}
@@ -91,11 +98,13 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 .submit-status{text-align:center;margin:8px 0;font-size:14px;min-height:22px}
 .submit-status.error{color:#c62828}
 .submit-status.success{color:#2e7d32}
+
 .thanks-box{display:none;text-align:center;padding:40px 24px;background:#fff;border-radius:14px;margin:20px 0}
 .thanks-box.show{display:block}
 .thanks-box h2{font-size:24px;color:#1a1206;margin-bottom:12px}
 .thanks-box p{font-size:16px;color:#4a3828;margin-bottom:16px}
 .thanks-box .btn-back-dash{padding:12px 32px;background:#2c2416;color:#fdf8f0;border:none;border-radius:10px;font-size:16px;cursor:pointer}
+
 .footer{text-align:center;padding:24px;font-size:13px;color:#8c7a5c;border-top:1px solid #e8dcc8;margin-top:20px}
 @media(max-width:480px){
   .header h1{font-size:21px}
@@ -105,12 +114,14 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 </style>
 </head>
 <body>
+
 <div class="browser-notice" id="browserNotice" style="display:none">⚠️ 请用浏览器打开，微信不支持语音输入。右上角「在浏览器中打开」</div>
 <div class="header">
 <h1>家人学习调研</h1>
 <div class="brand">伟大印记</div>
 <p id="headerSub">请用语音说出你的真实想法</p>
 </div>
+
 <!-- ==================== 登录视图 ==================== -->
 <div class="view active" id="viewLogin">
 <div class="login-wrap">
@@ -126,6 +137,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 </div>
 </div>
 </div>
+
 <!-- ==================== 面板视图 ==================== -->
 <div class="view" id="viewDashboard">
 <div class="dash-wrap">
@@ -138,9 +150,11 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 <div id="historyList"></div>
 </div>
 </div>
+
 <!-- ==================== 问卷视图 ==================== -->
 <div class="view" id="viewSurvey">
 <div class="survey-wrap" id="surveyForm">
+
 <!-- 个人简介 -->
 <div class="q-card">
 <div class="q-num">个人简介</div>
@@ -161,6 +175,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 </div>
 <textarea id="text-bio" placeholder="语音识别的内容会出现在这里，也可以手动输入..."></textarea>
 </div>
+
 <!-- 第一部分 -->
 <div class="q-card">
 <div class="q-num">第一部分 <span class="dur-badge">最长3分钟</span></div>
@@ -181,6 +196,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 </div>
 <textarea id="text-part1" placeholder="语音识别的内容会出现在这里，也可以手动修改..."></textarea>
 </div>
+
 <!-- 第二部分 -->
 <div class="q-card">
 <div class="q-num">第二部分 <span class="dur-badge">最长5分钟</span></div>
@@ -201,6 +217,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 </div>
 <textarea id="text-part2" placeholder="语音识别的内容会出现在这里，也可以手动修改..."></textarea>
 </div>
+
 <!-- 第三部分 -->
 <div class="q-card">
 <div class="q-num">第三部分 <span class="dur-badge">最长6分钟</span></div>
@@ -221,6 +238,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 </div>
 <textarea id="text-part3" placeholder="语音识别的内容会出现在这里，也可以手动修改..."></textarea>
 </div>
+
 <!-- 第四部分 -->
 <div class="q-card founder-card">
 <div class="q-num">第四部分</div>
@@ -228,6 +246,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 <div class="q-guide"><span class="guide-icon">✍️</span>此处由创始人阅读后填写。受访者可留空。</div>
 <textarea id="text-part4" class="founder-textarea" placeholder="创始人阅读后在此批注..."></textarea>
 </div>
+
 <div class="submit-status" id="submitStatus"></div>
 <div class="btn-row">
 <button class="btn-back" onclick="backToDashboard()">← 返回</button>
@@ -240,13 +259,19 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 </div>
 </div>
 </div>
+
 <div class="footer">家人学习调研工具 · 伟大印记 · 2026</div>
+
 <script>
 // ===== Config =====
 var API_URL = 'https://strong-butterfly-68.haohao2006888.deno.net/';
-var DURATIONS = { bio: 60, 1: 180, 2: 300, 3: 360 };
+var DURATIONS = { bio: 60, 1: 180, 2: 300, 3: 360 }; // seconds per part
+
+// ===== State (no local storage, data lives on GitHub via Deno proxy) =====
 var currentUser = null;
 var editingSubmission = null;
+
+// ===== Audio State =====
 var mediaRecorder = null;
 var audioChunks = [];
 var currentPartKey = null;
@@ -254,42 +279,81 @@ var currentVoiceBar = null;
 var recognition = null;
 var countdownTimer = null;
 var secondsLeft = 0;
-var audioBlobs = {};
+var audioBlobs = {}; // { 'bio': blob, '1': blob, ... }
+
+// ===== View Switching =====
 function showView(viewId) {
 document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
 document.getElementById(viewId).classList.add('active');
 }
+
+// ===== Login =====
 async function doLogin() {
 var name = document.getElementById('loginName').value.trim();
 if (!name) { alert('请输入你的名字'); return; }
 var contact = document.getElementById('loginContact').value.trim();
 currentUser = { name: name, contact: contact };
+
+// Detect WeChat
 if (/MicroMessenger/i.test(navigator.userAgent)) {
 document.getElementById('browserNotice').style.display = 'block';
 }
+
 showDashboard();
 }
+
 async function showDashboard() {
 showView('viewDashboard');
 document.getElementById('headerSub').textContent = currentUser.name + ' 的调研面板';
+
+// Clear immediately to prevent flash of old user data
 window._dashboardSubs = null;
 document.getElementById('dashUserCard').innerHTML = '';
 document.getElementById('historyList').innerHTML = '<div class="empty-history">加载中...</div>';
+
+// Load submissions — try Deno proxy first, fallback to GitHub raw
 var subs = [];
+var all = null;
 try {
 var resp = await fetch(API_URL);
-if (resp.ok) {
-var all = await resp.json();
+if (resp.ok) all = await resp.json();
+} catch(e) { console.warn('Proxy fetch failed, trying GitHub fallback:', e.message); }
+
+// Fallback: read directly from GitHub raw (works even when proxy is down)
+if (!all) {
+try {
+var rawResp = await fetch(
+'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions.json',
+{ headers: { 'Accept': 'application/json' } }
+);
+if (rawResp.ok) {
+all = await rawResp.json();
+// Strip audio base64 fields (they bloat payload and aren't needed for dashboard)
+all = all.map(function(s) {
+var clean = {};
+Object.keys(s).forEach(function(k) {
+if (!k.endsWith('_audio') && k !== 'ua') clean[k] = s[k];
+});
+return clean;
+});
+}
+} catch(e2) { console.error('GitHub fallback also failed:', e2.message); }
+}
+
+if (all) {
 subs = all.filter(function(s) { return s.userName === currentUser.name; });
 subs.sort(function(a, b) { return new Date(b.time) - new Date(a.time); });
 }
-} catch(e) { console.error('Load failed:', e); }
+
+// User card
 var card = document.getElementById('dashUserCard');
 card.innerHTML =
 '<div class="du-name">' + escapeHtml(currentUser.name) + '</div>' +
 '<div class="du-meta">📋 共 ' + subs.length + ' 篇记录' +
 (currentUser.contact ? ' · ' + escapeHtml(currentUser.contact) : '') +
 '</div>';
+
+// History
 var list = document.getElementById('historyList');
 if (subs.length === 0) {
 list.innerHTML = '<div class="empty-history">还没有记录，点击「新建调研」开始吧</div>';
@@ -310,8 +374,10 @@ return '<div class="history-item" onclick="viewSubmission(' + i + ')">' +
 '</div>';
 }).join('');
 }
+// Store subs for viewSubmission reference
 window._dashboardSubs = subs;
 }
+
 function viewSubmission(idx) {
 var sub = window._dashboardSubs && window._dashboardSubs[idx];
 if (!sub) return;
@@ -329,6 +395,7 @@ btn.textContent = '💾 保存批注';
 btn.disabled = false;
 document.querySelector('.btn-back').textContent = '← 返回面板';
 }
+
 function fillSurveyForm(sub) {
 document.getElementById('text-bio').value = sub.bio || '';
 document.getElementById('text-part1').value = sub.part1_text || '';
@@ -336,6 +403,7 @@ document.getElementById('text-part2').value = sub.part2_text || '';
 document.getElementById('text-part3').value = sub.part3_text || '';
 document.getElementById('text-part4').value = sub.part4_text || '';
 }
+
 function startNewSurvey() {
 editingSubmission = null;
 showView('viewSurvey');
@@ -348,11 +416,13 @@ document.getElementById('btnSubmit').textContent = '✓ 提交';
 document.getElementById('btnSubmit').style.display = '';
 document.querySelector('.btn-back').textContent = '← 返回';
 }
+
 function backToDashboard() {
 stopAllRecording();
 editingSubmission = null;
 showDashboard();
 }
+
 function doLogout() {
 stopAllRecording();
 currentUser = null;
@@ -360,6 +430,7 @@ editingSubmission = null;
 window._dashboardSubs = null;
 audioBlobs = {};
 resetSurveyForm();
+// Clear dashboard DOM to prevent cross-account data leak
 document.getElementById('dashUserCard').innerHTML = '';
 document.getElementById('historyList').innerHTML = '';
 document.getElementById('loginName').value = '';
@@ -368,13 +439,16 @@ document.getElementById('browserNotice').style.display = 'none';
 document.getElementById('headerSub').textContent = '请用语音说出你的真实想法';
 showView('viewLogin');
 }
+
 function resetSurveyForm() {
+// Reset textareas
 var taBio = document.getElementById('text-bio'); if (taBio) taBio.value = '';
 ['1','2','3','4'].forEach(function(p) {
 var ta = document.getElementById('text-part' + p);
 if (ta) ta.value = '';
 });
 audioBlobs = {};
+// Reset voice bars and audio playback
 var bioAp = document.getElementById('ap-bio'); if (bioAp) bioAp.classList.remove('show');
 var bioVb = document.getElementById('vb-bio');
 if (bioVb) {
@@ -394,17 +468,21 @@ vb.querySelector('.vb-text').textContent = '点我录音' + (p === '1' ? '（最
 vb.querySelector('.vb-status').textContent = '';
 }
 });
+// Reset submit button
 var b = document.getElementById('btnSubmit');
 b.style.display = '';
 b.textContent = '✓ 提交';
 b.disabled = false;
 isSubmitting = false;
 }
+
 function stopAllRecording() {
 if (currentVoiceBar && currentPartKey) {
 stopRecording(currentVoiceBar, currentPartKey);
 }
 }
+
+// ===== Recording =====
 document.querySelectorAll('.voice-bar').forEach(function(bar) {
 bar.addEventListener('click', function() {
 var part = bar.getAttribute('data-part');
@@ -416,6 +494,7 @@ startRecording(bar, part);
 }
 });
 });
+
 function startRecording(bar, part) {
 if (currentVoiceBar && currentVoiceBar !== bar) {
 stopRecording(currentVoiceBar, currentPartKey);
@@ -429,6 +508,7 @@ audioChunks = [];
 var mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : (MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '');
 var opts = mimeType ? { mimeType: mimeType } : {};
 mediaRecorder = new MediaRecorder(stream, opts);
+
 mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) audioChunks.push(e.data); };
 mediaRecorder.onstop = function() {
 stream.getTracks().forEach(function(t) { t.stop(); });
@@ -436,13 +516,16 @@ var blob = new Blob(audioChunks, { type: mimeType || 'audio/webm' });
 audioBlobs[part] = blob;
 showAudioPlayback(part, blob);
 };
+
 mediaRecorder.start();
 currentPartKey = part;
 currentVoiceBar = bar;
 startSpeechRecognition(bar, part);
+
 bar.classList.add('recording');
 bar.querySelector('.vb-icon').textContent = '🔴';
 bar.querySelector('.vb-text').textContent = '正在录音... 点我停止';
+
 var maxDur = DURATIONS[part] || 90;
 secondsLeft = maxDur;
 bar.querySelector('.vb-status').textContent = formatTime(secondsLeft);
@@ -457,17 +540,20 @@ bar.querySelector('.vb-status').textContent = '⚠ ' + formatTime(secondsLeft);
 bar.querySelector('.vb-status').textContent = formatTime(secondsLeft);
 }
 }, 1000);
+
 var ap = document.getElementById('ap-' + partName(part));
 if (ap) ap.classList.remove('show');
 }).catch(function() {
 alert('无法访问麦克风，请检查权限设置。');
 });
 }
+
 function stopRecording(bar, part) {
 if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
 if (mediaRecorder && mediaRecorder.state === 'recording') { mediaRecorder.stop(); }
 mediaRecorder = null;
 stopSpeechRecognition();
+
 if (bar) {
 bar.classList.remove('recording');
 bar.querySelector('.vb-icon').textContent = '🎤';
@@ -486,22 +572,33 @@ bar.querySelector('.vb-status').textContent = '✓ 已录音';
 currentPartKey = null;
 currentVoiceBar = null;
 }
+
 function startSpeechRecognition(bar, part) {
 var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (!SR) return;
+
+// Stop any already-running recognition (avoids overlapping sessions)
 if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+
 recognition = new SR();
 recognition.lang = 'zh-CN';
 recognition.interimResults = true;
 recognition.continuous = true;
 var textareaId = (part === 'bio') ? 'text-bio' : 'text-part' + part;
 var textarea = document.getElementById(textareaId);
+
+// userText = whatever was in the box BEFORE this recording session
+// speechFinal = all finalized speech recognized DURING this session
 var userText = textarea ? textarea.value : '';
 var speechFinal = '';
+
 textarea.setAttribute('data-speech-active', '1');
+
 recognition.onresult = function(e) {
 var newFinal = '';
 var interim = '';
+
+// Only process new results (e.resultIndex onwards)
 for (var i = e.resultIndex; i < e.results.length; i++) {
 var r = e.results[i];
 if (r.isFinal) {
@@ -510,24 +607,35 @@ newFinal += r[0].transcript;
 interim += r[0].transcript;
 }
 }
+
 if (newFinal) speechFinal += newFinal;
+
 if (textarea) {
 textarea.value = userText + speechFinal + interim;
 textarea.scrollTop = textarea.scrollHeight;
 }
 };
+
 recognition.onend = function() {
+// Keep text as-is. If browser auto-restarts (continuous=true),
+// speechFinal still holds accumulated text and userText stays.
+// The textarea already contains: userText + speechFinal (no interim)
 if (textarea) textarea.setAttribute('data-speech-active', '0');
 };
+
 recognition.onerror = function(e) {
 console.warn('SpeechRecognition error:', e.error);
+// On 'no-speech' or 'aborted', keep whatever text was recognized
 if (textarea) textarea.setAttribute('data-speech-active', '0');
 };
+
 recognition.start();
 }
+
 function stopSpeechRecognition() {
 if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
 }
+
 function showAudioPlayback(part, blob) {
 var ap = document.getElementById('ap-' + partName(part));
 var audio = document.getElementById('audio-' + partName(part));
@@ -540,6 +648,7 @@ audio.dataset.blobUrl = url;
 durEl.textContent = '...';
 audio.onloadedmetadata = function() {
 if (!isFinite(audio.duration) || audio.duration <= 0) {
+// Use recording seconds as fallback
 var dur = DURATIONS[part] ? DURATIONS[part] - (secondsLeft || 0) : 0;
 if (dur > 0) {
 var mins = Math.floor(dur / 60);
@@ -556,13 +665,18 @@ durEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
 };
 ap.classList.add('show');
 }
+
 function deleteRecording(part) {
 var bar = document.getElementById('vb-' + partName(part));
 var ap = document.getElementById('ap-' + partName(part));
+
+// If this part is currently recording, stop everything first
 if (currentPartKey === part && bar && bar.classList.contains('recording')) {
 if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
 if (mediaRecorder && mediaRecorder.state === 'recording') {
+// Get stream ref before replacing onstop (need to release tracks)
 var activeStream = mediaRecorder.stream;
+// Prevent onstop from writing to audioBlobs — we're deleting
 mediaRecorder.onstop = function() {
 if (activeStream) activeStream.getTracks().forEach(function(t) { t.stop(); });
 };
@@ -574,16 +688,25 @@ currentPartKey = null;
 currentVoiceBar = null;
 secondsLeft = 0;
 }
+
+// Remove audio blob
 delete audioBlobs[part];
+
+// Reset voice bar
 if (bar) {
 bar.classList.remove('has-audio', 'recording');
 bar.querySelector('.vb-icon').textContent = '🎤';
 bar.querySelector('.vb-text').textContent = part === 'bio' ? '点我录音介绍自己' : ('点我录音' + (part === '1' ? '（最长3分钟）' : (part === '2' ? '（最长5分钟）' : '（最长6分钟）')));
 bar.querySelector('.vb-status').textContent = '';
 }
+
+// Hide audio playback
 if (ap) ap.classList.remove('show');
 var audio = document.getElementById('audio-' + partName(part));
 if (audio) { audio.src = ''; audio.removeAttribute('data-blob-url'); }
+
+// Clear textarea only in new-survey mode (text came from recording)
+// In edit mode, text is saved data from server — keep it
 if (!editingSubmission) {
 var textareaId = (part === 'bio') ? 'text-bio' : 'text-part' + part;
 var textarea = document.getElementById(textareaId);
@@ -593,14 +716,17 @@ textarea.removeAttribute('data-speech-active');
 }
 }
 }
+
 function partName(part) {
 return part === 'bio' ? 'bio' : 'part' + part;
 }
+
 function formatTime(sec) {
 var m = Math.floor(sec / 60);
 var s = sec % 60;
 return m + ':' + (s < 10 ? '0' : '') + s;
 }
+
 function blobToBase64(blob) {
 return new Promise(function(resolve, reject) {
 var reader = new FileReader();
@@ -609,17 +735,23 @@ reader.onerror = reject;
 reader.readAsDataURL(blob);
 });
 }
+
+// ===== Submit =====
 var isSubmitting = false;
+
 function setStatus(msg, type) {
 var el = document.getElementById('submitStatus');
 el.textContent = msg;
 el.className = 'submit-status ' + (type || '');
 }
+
 async function submitSurvey() {
 if (isSubmitting) return;
 if (!currentUser) { setStatus('请先登录', 'error'); return; }
+
 var isEdit = !!editingSubmission;
 if (isEdit) {
+// Part4 edit: PUT /part4
 var part4 = document.getElementById('text-part4').value.trim();
 if (!part4) { setStatus('请填写创始人批注', 'error'); return; }
 isSubmitting = true;
@@ -650,6 +782,8 @@ isSubmitting = false;
 btn.disabled = false;
 return;
 }
+
+// New submission validation
 var bio = document.getElementById('text-bio').value.trim();
 var hasContent = false;
 for (var i = 1; i <= 3; i++) {
@@ -657,11 +791,13 @@ if (document.getElementById('text-part' + i).value.trim()) hasContent = true;
 if (audioBlobs[i]) hasContent = true;
 }
 if (!bio && !hasContent) { setStatus('至少填写个人简介或完成一个部分的录音', 'error'); return; }
+
 isSubmitting = true;
 var btn = document.getElementById('btnSubmit');
 btn.textContent = '提交中...';
 btn.disabled = true;
 setStatus('正在处理...', '');
+
 try {
 var submission = {
 userName: currentUser.name,
@@ -670,9 +806,13 @@ bio: bio,
 time: new Date().toISOString(),
 ua: navigator.userAgent
 };
+
+// Text
 for (var i = 1; i <= 4; i++) {
 submission['part' + i + '_text'] = document.getElementById('text-part' + i).value.trim();
 }
+
+// Audio for bio and parts 1-3
 var keys = ['bio', '1', '2', '3'];
 for (var k = 0; k < keys.length; k++) {
 var key = keys[k];
@@ -682,8 +822,11 @@ var b64 = await blobToBase64(audioBlobs[key]);
 submission[key === 'bio' ? 'bio_audio' : 'part' + key + '_audio'] = b64;
 }
 }
+
+// Submit to cloud
 setStatus('提交到云端...', '');
 await submitToCloud(submission, 0, btn);
+
 } catch (err) {
 console.error(err);
 setStatus('提交失败，请重试', 'error');
@@ -692,10 +835,12 @@ btn.disabled = false;
 isSubmitting = false;
 }
 }
+
 function submitToCloud(payload, retryCount, btn) {
 return new Promise(function(resolve, reject) {
 var controller = new AbortController();
 var fetchTimeout = setTimeout(function() { controller.abort(); }, 60000);
+
 fetch(API_URL, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
@@ -736,12 +881,15 @@ reject(err);
 });
 });
 }
+
+// ===== Helpers =====
 function pad(n) { return n < 10 ? '0' + n : '' + n; }
 function escapeHtml(s) {
 var d = document.createElement('div');
 d.textContent = s;
 return d.innerHTML;
 }
+
 </script>
 </body>
 </html>
