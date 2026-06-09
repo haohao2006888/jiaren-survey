@@ -306,6 +306,11 @@ async function showDashboard() {
 showView('viewDashboard');
 document.getElementById('headerSub').textContent = currentUser.name + ' 的调研面板';
 
+// Clear immediately to prevent flash of old user data
+window._dashboardSubs = null;
+document.getElementById('dashUserCard').innerHTML = '';
+document.getElementById('historyList').innerHTML = '<div class="empty-history">加载中...</div>';
+
 // Load submissions from API
 var subs = [];
 try {
@@ -402,6 +407,9 @@ editingSubmission = null;
 window._dashboardSubs = null;
 audioBlobs = {};
 resetSurveyForm();
+// Clear dashboard DOM to prevent cross-account data leak
+document.getElementById('dashUserCard').innerHTML = '';
+document.getElementById('historyList').innerHTML = '';
 document.getElementById('loginName').value = '';
 document.getElementById('loginContact').value = '';
 document.getElementById('browserNotice').style.display = 'none';
