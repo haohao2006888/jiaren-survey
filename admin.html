@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>管理后台 · 家人学习调研</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f0e8;color:#2c2416;line-height:1.8;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1206,#2c2416);color:#fdf8f0;padding:20px 24px;text-align:center}
+.header h1{font-size:18px;letter-spacing:1px}
+.header .ver{font-size:11px;opacity:.5;margin-top:2px}
+.toolbar{max-width:1200px;margin:0 auto;padding:14px 20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.toolbar input,.toolbar select{padding:10px 14px;border:1.6px solid #e8dcc8;border-radius:8px;font-size:14px;background:#fff;font-family:inherit}
+.toolbar input{flex:1;min-width:180px}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:#2c2416;color:#fdf8f0}
+.btn-primary:active{background:#4a3828}
+.btn-outline{background:#fff;color:#2c2416;border:1.6px solid #e8dcc8}
+.stats-bar{max-width:1200px;margin:0 auto 8px;padding:0 20px;display:flex;gap:16px;flex-wrap:wrap}
+.stat-card{background:#fff;border-radius:10px;padding:14px 18px;box-shadow:0 1px 4px rgba(0,0,0,.04);min-width:100px;flex:1}
+.stat-card .sn{font-size:20px;font-weight:700;color:#1a1206}
+.stat-card .sl{font-size:12px;color:#8c7a5c}
+.main-wrap{max-width:1200px;margin:0 auto;padding:0 20px 40px}
+.sub-table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.sub-table th{background:#2c2416;color:#fdf8f0;padding:12px 14px;font-size:13px;text-align:left;white-space:nowrap}
+.sub-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid #f0ebe0;vertical-align:top}
+.sub-table tr:hover td{background:#fdf8f0}
+.sub-table .td-preview{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;margin:1px 2px}
+.tag-bio{background:#e8f5e9;color:#2e7d32}
+.tag-txt{background:#fff3e0;color:#e65100}
+.tag-filled{background:#e3f2fd;color:#1565c0}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.status-dot.ok{background:#2e7d32}
+.status-dot.err{background:#c62828}
+.empty{text-align:center;padding:60px 20px;color:#8c7a5c;font-size:15px}
+.loading{text-align:center;padding:60px 20px;color:#8c7a5c}
+.loading::after{content:'...';animation:ld 1.5s infinite}
+@keyframes ld{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
+.detail-panel{display:none;position:fixed;top:0;right:0;width:100%;max-width:520px;height:100vh;background:#fff;box-shadow:-4px 0 12px rgba(0,0,0,.1);z-index:100;overflow-y:auto;padding:24px}
+.detail-panel.show{display:block}
+.detail-panel h3{font-size:17px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #e8dcc8}
+.detail-panel .close-btn{position:absolute;top:16px;right:16px;background:none;border:none;font-size:24px;cursor:pointer;color:#8c7a5c}
+.detail-field{margin-bottom:14px}
+.detail-field .df-label{font-size:12px;color:#8c7a5c;font-weight:600;margin-bottom:2px}
+.detail-field .df-value{font-size:14px;line-height:1.7;white-space:pre-wrap}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:99}
+.overlay.show{display:block}
+@media(max-width:768px){
+  .sub-table{font-size:11px}
+  .sub-table td,.sub-table th{padding:8px 6px}
+  .toolbar{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>📊 管理后台 · 家人学习调研</h1>
+<div class="ver" id="verInfo">连接中...</div>
+</div>
+
+<div class="toolbar">
+<input type="text" id="filterInput" placeholder="🔍 搜索名字 / 内容..." oninput="renderTable()">
+<select id="sortBy" onchange="renderTable()">
+<option value="time">按时间排序</option>
+<option value="name">按名字排序</option>
+<option value="parts">按完成度排序</option>
+</select>
+<button class="btn btn-primary" onclick="refreshData()">🔄 刷新</button>
+<button class="btn btn-outline" onclick="exportJSON()">📥 导出 JSON</button>
+<button class="btn btn-outline" onclick="exportCSV()">📥 导出 CSV</button>
+</div>
+
+<div class="stats-bar" id="statsBar"></div>
+<div class="main-wrap">
+<div id="loadingMsg" class="loading">加载中</div>
+<div id="tableWrap"></div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detailPanel"></div>
+
+<script>
+var allSubs = [];
+var apiStatus = '';
+
+async function refreshData() {
+document.getElementById('loadingMsg').style.display = 'block';
+document.getElementById('tableWrap').innerHTML = '';
+apiStatus = '';
+try {
+var resp = await fetch('https://serene-cricket-35.haohao2006888.deno.net/', {
+method: 'GET',
+headers: {'Accept': 'application/json'}
+});
+if (!resp.ok) throw new Error('HTTP ' + resp.status);
+allSubs = await resp.json();
+apiStatus = '✅ GET 接口正常 · ' + allSubs.length + ' 条';
+} catch(e) {
+apiStatus = '⚠️ GET 接口未就绪: ' + e.message + ' · 尝试直读 GitHub...';
+try {
+var rawResp = await fetch(
+'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions.json',
+{headers:{'Accept':'application/json'}}
+);
+if (!rawResp.ok) throw new Error('HTTP ' + rawResp.status);
+allSubs = await rawResp.json();
+// Strip audio fields if present
+allSubs = allSubs.map(function(s) {
+var clone = {};
+Object.keys(s).forEach(function(k) {
+if (!k.endsWith('_audio') && k !== 'ua') clone[k] = s[k];
+});
+return clone;
+});
+apiStatus = '✅ GitHub 直读 · ' + allSubs.length + ' 条';
+} catch(e2) {
+apiStatus = '❌ 全部失败: GET=' + e.message + ' | Raw=' + e2.message;
+allSubs = [];
+}
+}
+document.getElementById('loadingMsg').style.display = 'none';
+document.getElementById('verInfo').textContent = apiStatus;
+renderStats();
+renderTable();
+}
+
+function renderStats() {
+var users = {};
+allSubs.forEach(function(s) {
+var n = s.userName || s.name || '?';
+users[n] = (users[n] || 0) + 1;
+});
+var userNames = Object.keys(users);
+var totalParts = allSubs.reduce(function(sum, s) {
+var c = 0;
+for (var i = 1; i <= 4; i++) if (s['part' + i + '_text']) c++;
+if (s.bio) c++;
+return sum + c;
+}, 0);
+
+document.getElementById('statsBar').innerHTML =
+'<div class="stat-card"><div class="sn">' + allSubs.length + '</div><div class="sl">总提交</div></div>' +
+'<div class="stat-card"><div class="sn">' + userNames.length + '</div><div class="sl">参与人数</div></div>' +
+'<div class="stat-card"><div class="sn">' + totalParts + '</div><div class="sl">填写字段</div></div>' +
+'<div class="stat-card"><div class="sn">' + allSubs.filter(function(s){ return s.bio; }).length + '</div><div class="sl">有简介</div></div>';
+}
+
+function renderTable() {
+var filter = (document.getElementById('filterInput').value || '').toLowerCase();
+var sortBy = document.getElementById('sortBy').value;
+
+var filtered = allSubs.filter(function(s) {
+if (!filter) return true;
+var txt = (s.userName||'') + (s.name||'') + (s.bio||'') + (s.part1_text||'') + (s.part2_text||'') + (s.part3_text||'') + (s.part4_text||'');
+return txt.toLowerCase().indexOf(filter) >= 0;
+});
+
+if (sortBy === 'time') {
+filtered.sort(function(a,b) { return new Date(b.time||b._received||0) - new Date(a.time||a._received||0); });
+} else if (sortBy === 'name') {
+filtered.sort(function(a,b) { return (a.userName||a.name||'').localeCompare(b.userName||b.name||'','zh'); });
+} else if (sortBy === 'parts') {
+filtered.sort(function(a,b) {
+var ca = 0, cb = 0;
+for (var i = 1; i <= 4; i++) { if (a['part' + i + '_text']) ca++; if (b['part' + i + '_text']) cb++; }
+if (a.bio) ca++; if (b.bio) cb++;
+return cb - ca;
+});
+}
+
+if (filtered.length === 0) {
+document.getElementById('tableWrap').innerHTML = '<div class="empty">没有匹配的数据</div>';
+return;
+}
+
+var html = '<table class="sub-table"><thead><tr>' +
+'<th>时间</th><th>名字</th><th>简介</th><th>P1原文</th><th>P2智慧</th><th>P3联想</th><th>P4批注</th><th></th>' +
+'</tr></thead><tbody>';
+
+filtered.forEach(function(s, idx) {
+var d = new Date(s.time || s._received || '');
+var dateStr = d.getFullYear() + '/' + pad(d.getMonth()+1) + '/' + pad(d.getDate());
+var name = s.userName || s.name || '?';
+var parts = [];
+if (s.bio) parts.push('<span class="tag tag-bio">简介</span>');
+for (var i = 1; i <= 4; i++) {
+if (s['part' + i + '_text']) parts.push('<span class="tag tag-txt">P' + i + '</span>');
+}
+if (parts.length >= 3) parts.push('<span class="tag tag-filled">完整</span>');
+
+html += '<tr onclick="showDetail(' + idx + ')">' +
+'<td style="white-space:nowrap">' + dateStr + '</td>' +
+'<td><strong>' + esc(name) + '</strong></td>' +
+'<td class="td-preview">' + esc(trunc(s.bio||'',40)) + '</td>' +
+'<td class="td-preview">' + esc(trunc(s.part1_text||'',30)) + '</td>' +
+'<td class="td-preview">' + esc(trunc(s.part2_text||'',30)) + '</td>' +
+'<td class="td-preview">' + esc(trunc(s.part3_text||'',30)) + '</td>' +
+'<td class="td-preview">' + esc(trunc(s.part4_text||'',20)) + '</td>' +
+'<td>' + parts.join(' ') + '</td>' +
+'</tr>';
+});
+html += '</tbody></table>';
+document.getElementById('tableWrap').innerHTML = html;
+}
+
+function showDetail(idx) {
+var s = allSubs[idx];
+if (!s) return;
+var d = new Date(s.time || s._received || '');
+var html = '<button class="close-btn" onclick="closeDetail()">✕</button>' +
+'<h3>' + esc(s.userName || s.name || '?') + ' · ' + d.toLocaleString('zh-CN') + '</h3>';
+var fields = [
+{label:'个人简介', value:s.bio},
+{label:'第一部分 · 经典原文', value:s.part1_text},
+{label:'第二部分 · 读后智慧', value:s.part2_text},
+{label:'第三部分 · 人生联想', value:s.part3_text},
+{label:'第四部分 · 创始人批注', value:s.part4_text},
+{label:'联系方式', value:s.contact}
+];
+fields.forEach(function(f) {
+if (f.value) {
+html += '<div class="detail-field"><div class="df-label">' + f.label + '</div><div class="df-value">' + esc(f.value) + '</div></div>';
+}
+});
+html += '<div class="detail-field"><div class="df-label">原始数据</div><div class="df-value" style="font-size:12px;color:#8c7a5c">' +
+esc(JSON.stringify(s, function(k,v) { return k.endsWith('_audio') ? '[音频 ' + v.length + ' 字符]' : v; }, 2)) +
+'</div></div>';
+document.getElementById('detailPanel').innerHTML = html;
+document.getElementById('detailPanel').classList.add('show');
+document.getElementById('overlay').classList.add('show');
+}
+
+function closeDetail() {
+document.getElementById('detailPanel').classList.remove('show');
+document.getElementById('overlay').classList.remove('show');
+}
+
+function exportJSON() {
+var exportData = allSubs.map(function(s) {
+var clone = {};
+Object.keys(s).forEach(function(k) {
+if (k.endsWith('_audio')) clone[k] = '[音频 ' + (s[k]||'').length + ' 字符]';
+else clone[k] = s[k];
+});
+return clone;
+});
+var blob = new Blob([JSON.stringify(exportData, null, 2)], {type:'application/json'});
+var a = document.createElement('a');
+a.href = URL.createObjectURL(blob);
+a.download = 'jiaren_survey_data_' + new Date().toISOString().slice(0,10) + '.json';
+a.click();
+}
+
+function exportCSV() {
+var header = '时间,名字,联系方式,个人简介,第一部分原文,第二部分智慧,第三部分联想,第四部分批注\n';
+var rows = allSubs.map(function(s) {
+return [
+s.time||s._received||'',
+'"' + (s.userName||s.name||'').replace(/"/g,'""') + '"',
+'"' + (s.contact||'').replace(/"/g,'""') + '"',
+'"' + (s.bio||'').replace(/"/g,'""') + '"',
+'"' + (s.part1_text||'').replace(/"/g,'""') + '"',
+'"' + (s.part2_text||'').replace(/"/g,'""') + '"',
+'"' + (s.part3_text||'').replace(/"/g,'""') + '"',
+'"' + (s.part4_text||'').replace(/"/g,'""') + '"'
+].join(',');
+}).join('\n');
+var bom = '\uFEFF';
+var blob = new Blob([bom + header + rows], {type:'text/csv;charset=utf-8'});
+var a = document.createElement('a');
+a.href = URL.createObjectURL(blob);
+a.download = 'jiaren_survey_data_' + new Date().toISOString().slice(0,10) + '.csv';
+a.click();
+}
+
+function esc(s) { var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+function trunc(s,n) { return s && s.length > n ? s.substring(0,n)+'…' : s||''; }
+function pad(n) { return n < 10 ? '0'+n : ''+n; }
+
+// Init
+refreshData();
+</script>
+</body>
+</html>
