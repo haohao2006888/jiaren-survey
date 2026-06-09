@@ -77,6 +77,9 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .voice-bar.recording .vb-status{color:#c62828}
 .voice-bar.has-audio{border-color:#2e7d32;background:#f1f8e9}
 .voice-bar.has-audio .vb-status{color:#2e7d32}
+.vb-delete{display:none;flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px solid #c62828;background:#fff;color:#c62828;font-size:16px;line-height:24px;text-align:center;cursor:pointer;margin-left:4px}
+.voice-bar.has-audio .vb-delete{display:inline-block}
+.vb-delete:active{background:#ffebee}
 @keyframes vbPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
 
 .audio-playback{display:none;margin-top:8px;padding:8px 14px;background:#f1f8e9;border-radius:20px;align-items:center;gap:10px}
@@ -84,7 +87,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .audio-playback audio{flex:1;height:32px}
 .audio-playback .ap-dur{font-size:12px;color:#6b5c3e;flex-shrink:0}
 
-textarea{width:100%;min-height:90px;border:1.6px solid #e8dcc8;border-radius:10px;padding:14px;font-size:16px;font-family:inherit;resize:vertical;background:#fdf8f0;line-height:1.7;transition:border-color .2s}
+textarea{width:100%;min-height:120px;max-height:300px;border:1.6px solid #e8dcc8;border-radius:10px;padding:14px;font-size:16px;font-family:inherit;resize:vertical;background:#fdf8f0;line-height:1.7;overflow-y:auto;transition:border-color .2s;-webkit-overflow-scrolling:touch}
 textarea:focus{outline:none;border-color:#c9a96e;background:#fff}
 textarea.founder-textarea{min-height:100px;background:#fffef9}
 
@@ -164,6 +167,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 <span class="vb-text">点我录音介绍自己</span>
 <span class="vb-wave"><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span></span>
 <span class="vb-status"></span>
+<span class="vb-delete" onclick="event.stopPropagation();deleteRecording('bio')" title="删除录音">×</span>
 </div>
 <div class="audio-playback" id="ap-bio">
 <audio id="audio-bio" controls></audio>
@@ -184,6 +188,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 <span class="vb-text">点我录音（最长3分钟）</span>
 <span class="vb-wave"><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span></span>
 <span class="vb-status"></span>
+<span class="vb-delete" onclick="event.stopPropagation();deleteRecording('1')" title="删除录音">×</span>
 </div>
 <div class="audio-playback" id="ap-part1">
 <audio id="audio-part1" controls></audio>
@@ -204,6 +209,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 <span class="vb-text">点我录音（最长5分钟）</span>
 <span class="vb-wave"><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span></span>
 <span class="vb-status"></span>
+<span class="vb-delete" onclick="event.stopPropagation();deleteRecording('2')" title="删除录音">×</span>
 </div>
 <div class="audio-playback" id="ap-part2">
 <audio id="audio-part2" controls></audio>
@@ -224,6 +230,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 <span class="vb-text">点我录音（最长6分钟）</span>
 <span class="vb-wave"><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span><span class="vb-dot"></span></span>
 <span class="vb-status"></span>
+<span class="vb-delete" onclick="event.stopPropagation();deleteRecording('3')" title="删除录音">×</span>
 </div>
 <div class="audio-playback" id="ap-part3">
 <audio id="audio-part3" controls></audio>
@@ -542,7 +549,10 @@ var textarea = document.getElementById(textareaId);
 recognition.onresult = function(e) {
 var t = '';
 for (var i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
-if (textarea) textarea.value = t;
+if (textarea && t) {
+textarea.value += t;
+textarea.scrollTop = textarea.scrollHeight;
+}
 };
 recognition.onerror = function(e) { console.warn('Speech error:', e.error); };
 recognition.start();
@@ -580,6 +590,24 @@ var secs = Math.floor(audio.duration % 60);
 durEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
 };
 ap.classList.add('show');
+}
+
+function deleteRecording(part) {
+var bar = document.getElementById('vb-' + partName(part));
+var ap = document.getElementById('ap-' + partName(part));
+// Remove audio blob
+delete audioBlobs[part];
+// Reset voice bar
+if (bar) {
+bar.classList.remove('has-audio', 'recording');
+bar.querySelector('.vb-icon').textContent = '🎤';
+bar.querySelector('.vb-text').textContent = part === 'bio' ? '点我录音介绍自己' : ('点我录音' + (part === '1' ? '（最长3分钟）' : (part === '2' ? '（最长5分钟）' : '（最长6分钟）')));
+bar.querySelector('.vb-status').textContent = '';
+}
+// Hide audio playback
+if (ap) ap.classList.remove('show');
+var audio = document.getElementById('audio-' + partName(part));
+if (audio) audio.src = '';
 }
 
 function partName(part) {
