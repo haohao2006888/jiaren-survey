@@ -257,7 +257,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 
 <script>
 // ===== Config =====
-var API_URL = 'https://serene-cricket-35.haohao2006888.deno.net/';
+var API_URL = 'https://strong-butterfly-68.haohao2006888.deno.net/';
 var DURATIONS = { bio: 60, 1: 180, 2: 300, 3: 360 }; // seconds per part
 
 // ===== IndexedDB =====
@@ -410,6 +410,7 @@ return '<div class="history-item" onclick="viewSubmission(' + s.id + ')">' +
 async function viewSubmission(id) {
 var sub = await dbGet('submissions', id);
 if (!sub) return;
+editingSubmissionId = id;
 showView('viewSurvey');
 resetSurveyForm();
 fillSurveyForm(sub);
@@ -417,7 +418,10 @@ document.getElementById('submitStatus').textContent = '';
 document.getElementById('submitStatus').className = 'submit-status';
 document.getElementById('thanksBox').classList.remove('show');
 document.getElementById('surveyForm').style.display = '';
-document.getElementById('btnSubmit').style.display = 'none'; // read-only view
+var btn = document.getElementById('btnSubmit');
+btn.style.display = '';
+btn.textContent = '💾 保存批注';
+btn.disabled = false;
 document.querySelector('.btn-back').textContent = '← 返回面板';
 }
 
@@ -431,12 +435,15 @@ document.getElementById('text-part4').value = sub.part4_text || '';
 }
 
 function startNewSurvey() {
+editingSubmissionId = null;
 showView('viewSurvey');
 resetSurveyForm();
 document.getElementById('submitStatus').textContent = '';
 document.getElementById('submitStatus').className = 'submit-status';
 document.getElementById('thanksBox').classList.remove('show');
 document.getElementById('surveyForm').style.display = '';
+document.getElementById('btnSubmit').textContent = '✓ 提交';
+document.getElementById('btnSubmit').style.display = '';
 document.querySelector('.btn-back').textContent = '← 返回';
 }
 
@@ -619,7 +626,20 @@ var url = URL.createObjectURL(blob);
 if (audio.dataset.blobUrl) URL.revokeObjectURL(audio.dataset.blobUrl);
 audio.src = url;
 audio.dataset.blobUrl = url;
+durEl.textContent = '...';
 audio.onloadedmetadata = function() {
+if (!isFinite(audio.duration) || audio.duration <= 0) {
+// Use recording seconds as fallback
+var dur = DURATIONS[part] ? DURATIONS[part] - (secondsLeft || 0) : 0;
+if (dur > 0) {
+var mins = Math.floor(dur / 60);
+var secs = Math.floor(dur % 60);
+durEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+} else {
+durEl.textContent = '-:--';
+}
+return;
+}
 var mins = Math.floor(audio.duration / 60);
 var secs = Math.floor(audio.duration % 60);
 durEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
@@ -648,6 +668,7 @@ reader.readAsDataURL(blob);
 
 // ===== Submit =====
 var isSubmitting = false;
+var editingSubmissionId = null;
 
 function setStatus(msg, type) {
 var el = document.getElementById('submitStatus');
@@ -697,9 +718,19 @@ submission[key === 'bio' ? 'bio_audio' : 'part' + key + '_audio'] = b64;
 }
 }
 
-// Save to IndexedDB
+// Save/update in IndexedDB
+if (editingSubmissionId) {
+// Update existing submission: keep all original fields, only update part4
+var existing = await dbGet('submissions', editingSubmissionId);
+if (existing) {
+existing.part4_text = submission.part4_text || '';
+await dbPut('submissions', existing, editingSubmissionId);
+submission.id = editingSubmissionId;
+}
+} else {
 var id = await dbPut('submissions', submission);
 submission.id = id;
+}
 
 // Update user profile
 if (bio && (!currentUser.bio || bio !== currentUser.bio)) {
@@ -707,14 +738,23 @@ currentUser.bio = bio;
 await dbPut('users', currentUser);
 }
 
-// Submit to GitHub
+// Submit to GitHub (skip for part4-only edits)
+if (!editingSubmissionId) {
 setStatus('提交到云端...', '');
 submitToGitHub(submission, 0, btn);
+} else {
+// Part4 edit: local-only save, no cloud submission
+setStatus('批注已保存到本地 ✅', 'success');
+editingSubmissionId = null;
+btn.textContent = '💾 保存批注';
+btn.disabled = false;
+isSubmitting = false;
+}
 
 } catch (err) {
 console.error(err);
 setStatus('处理失败，请重试', 'error');
-btn.textContent = '重新提交';
+btn.textContent = editingSubmissionId ? '💾 保存批注' : '重新提交';
 btn.disabled = false;
 isSubmitting = false;
 }
@@ -722,11 +762,16 @@ isSubmitting = false;
 
 function submitToGitHub(payload, retryCount, btn) {
 var payloadStr = JSON.stringify(payload);
+var controller = new AbortController();
+var fetchTimeout = setTimeout(function() { controller.abort(); }, 60000);
+
 fetch(API_URL, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
-body: payloadStr
+body: payloadStr,
+signal: controller.signal
 }).then(function(r) {
+clearTimeout(fetchTimeout);
 if (!r.ok) throw new Error('HTTP ' + r.status);
 return r.json();
 }).then(function(result) {
@@ -735,6 +780,7 @@ document.getElementById('surveyForm').style.display = 'none';
 document.getElementById('thanksBox').classList.add('show');
 document.getElementById('submitStatus').textContent = '';
 clearLocalPending();
+isSubmitting = false;
 } else if (result.error && result.error.indexOf('sha') >= 0 && retryCount < 3) {
 setStatus('云端冲突自动重试... (' + (retryCount+1) + '/3)', '');
 setTimeout(function() { submitToGitHub(payload, retryCount+1, btn); }, 800);
@@ -742,8 +788,20 @@ setTimeout(function() { submitToGitHub(payload, retryCount+1, btn); }, 800);
 throw new Error(result.error || 'Unknown');
 }
 }).catch(function(err) {
+clearTimeout(fetchTimeout);
 console.error('Submit error:', err);
+if (err.name === 'AbortError') {
+setStatus('云端超时，第' + (retryCount+1) + '次重试...', 'error');
 if (retryCount < 3) {
+setTimeout(function() { submitToGitHub(payload, retryCount+1, btn); }, 2000);
+} else {
+setStatus('云端暂不可用，已保存在本地', 'error');
+saveLocal(payload);
+btn.textContent = '重新提交';
+btn.disabled = false;
+isSubmitting = false;
+}
+} else if (retryCount < 3) {
 setStatus('网络重试... (' + (retryCount+1) + '/3)', 'error');
 setTimeout(function() { submitToGitHub(payload, retryCount+1, btn); }, 1500);
 } else {
