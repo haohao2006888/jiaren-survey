@@ -260,62 +260,9 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 var API_URL = 'https://strong-butterfly-68.haohao2006888.deno.net/';
 var DURATIONS = { bio: 60, 1: 180, 2: 300, 3: 360 }; // seconds per part
 
-// ===== IndexedDB =====
-var DB_NAME = 'jiaren_survey_db';
-var DB_VER = 1;
-var db = null;
+// ===== State (no local storage, data lives on GitHub via Deno proxy) =====
 var currentUser = null;
-
-function openDB() {
-return new Promise(function(resolve, reject) {
-var req = indexedDB.open(DB_NAME, DB_VER);
-req.onupgradeneeded = function(e) {
-var d = e.target.result;
-if (!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'name' });
-if (!d.objectStoreNames.contains('submissions')) {
-var s = d.createObjectStore('submissions', { keyPath: 'id', autoIncrement: true });
-s.createIndex('userName', 'userName', { unique: false });
-}
-};
-req.onsuccess = function(e) { db = e.target.result; resolve(db); };
-req.onerror = function(e) { reject(e); };
-});
-}
-
-function dbPut(storeName, data) {
-return new Promise(function(resolve, reject) {
-var tx = db.transaction(storeName, 'readwrite');
-var store = tx.objectStore(storeName);
-var req = store.put(data);
-req.onsuccess = function() { resolve(req.result); };
-req.onerror = function(e) { reject(e); };
-});
-}
-
-function dbGet(storeName, key) {
-return new Promise(function(resolve, reject) {
-var tx = db.transaction(storeName, 'readonly');
-var store = tx.objectStore(storeName);
-var req = store.get(key);
-req.onsuccess = function() { resolve(req.result); };
-req.onerror = function(e) { reject(e); };
-});
-}
-
-function dbGetAll(storeName, indexName, value) {
-return new Promise(function(resolve, reject) {
-var tx = db.transaction(storeName, 'readonly');
-var store = tx.objectStore(storeName);
-var req;
-if (indexName && value !== undefined) {
-req = store.index(indexName).getAll(value);
-} else {
-req = store.getAll();
-}
-req.onsuccess = function() { resolve(req.result || []); };
-req.onerror = function(e) { reject(e); };
-});
-}
+var editingSubmission = null;
 
 // ===== Audio State =====
 var mediaRecorder = null;
@@ -338,24 +285,7 @@ async function doLogin() {
 var name = document.getElementById('loginName').value.trim();
 if (!name) { alert('请输入你的名字'); return; }
 var contact = document.getElementById('loginContact').value.trim();
-
-await openDB();
 currentUser = { name: name, contact: contact };
-
-// Check if user exists
-var existing = await dbGet('users', name);
-if (existing) {
-currentUser = existing;
-if (contact && contact !== existing.contact) {
-existing.contact = contact;
-await dbPut('users', existing);
-currentUser = existing;
-}
-} else {
-// New user
-await dbPut('users', { name: name, contact: contact });
-currentUser = { name: name, contact: contact };
-}
 
 // Detect WeChat
 if (/MicroMessenger/i.test(navigator.userAgent)) {
@@ -369,20 +299,24 @@ async function showDashboard() {
 showView('viewDashboard');
 document.getElementById('headerSub').textContent = currentUser.name + ' 的调研面板';
 
-var subs = await dbGetAll('submissions', 'userName', currentUser.name);
+// Load submissions from API
+var subs = [];
+try {
+var resp = await fetch(API_URL);
+if (resp.ok) {
+var all = await resp.json();
+subs = all.filter(function(s) { return s.userName === currentUser.name; });
 subs.sort(function(a, b) { return new Date(b.time) - new Date(a.time); });
+}
+} catch(e) { console.error('Load failed:', e); }
 
 // User card
 var card = document.getElementById('dashUserCard');
-var bioHtml = '';
-if (currentUser.bio) {
-bioHtml = '<div class="du-bio">📝 ' + escapeHtml(currentUser.bio) + '</div>';
-}
 card.innerHTML =
 '<div class="du-name">' + escapeHtml(currentUser.name) + '</div>' +
 '<div class="du-meta">📋 共 ' + subs.length + ' 篇记录' +
 (currentUser.contact ? ' · ' + escapeHtml(currentUser.contact) : '') +
-'</div>' + bioHtml;
+'</div>';
 
 // History
 var list = document.getElementById('historyList');
@@ -398,19 +332,21 @@ if (s.part1_text) parts.push('原文');
 if (s.part2_text) parts.push('智慧');
 if (s.part3_text) parts.push('联想');
 if (s.part4_text) parts.push('批注');
-return '<div class="history-item" onclick="viewSubmission(' + s.id + ')">' +
+return '<div class="history-item" onclick="viewSubmission(' + i + ')">' +
 '<div class="hi-date">' + dateStr + '</div>' +
 '<div class="hi-preview">' + escapeHtml(preview) + (preview.length >= 60 ? '...' : '') + '</div>' +
 '<div class="hi-parts">' + parts.join(' · ') + '</div>' +
 '</div>';
 }).join('');
 }
+// Store subs for viewSubmission reference
+window._dashboardSubs = subs;
 }
 
-async function viewSubmission(id) {
-var sub = await dbGet('submissions', id);
+function viewSubmission(idx) {
+var sub = window._dashboardSubs && window._dashboardSubs[idx];
 if (!sub) return;
-editingSubmissionId = id;
+editingSubmission = sub;
 showView('viewSurvey');
 resetSurveyForm();
 fillSurveyForm(sub);
@@ -431,11 +367,10 @@ document.getElementById('text-part1').value = sub.part1_text || '';
 document.getElementById('text-part2').value = sub.part2_text || '';
 document.getElementById('text-part3').value = sub.part3_text || '';
 document.getElementById('text-part4').value = sub.part4_text || '';
-// Note: audio not reloaded from IndexedDB in read-only view to save memory
 }
 
 function startNewSurvey() {
-editingSubmissionId = null;
+editingSubmission = null;
 showView('viewSurvey');
 resetSurveyForm();
 document.getElementById('submitStatus').textContent = '';
@@ -668,7 +603,6 @@ reader.readAsDataURL(blob);
 
 // ===== Submit =====
 var isSubmitting = false;
-var editingSubmissionId = null;
 
 function setStatus(msg, type) {
 var el = document.getElementById('submitStatus');
@@ -679,6 +613,42 @@ el.className = 'submit-status ' + (type || '');
 async function submitSurvey() {
 if (isSubmitting) return;
 if (!currentUser) { setStatus('请先登录', 'error'); return; }
+
+var isEdit = !!editingSubmission;
+if (isEdit) {
+// Part4 edit: PUT /part4
+var part4 = document.getElementById('text-part4').value.trim();
+if (!part4) { setStatus('请填写创始人批注', 'error'); return; }
+isSubmitting = true;
+var btn = document.getElementById('btnSubmit');
+btn.textContent = '保存中...';
+btn.disabled = true;
+setStatus('正在保存...', '');
+try {
+var putResp = await fetch(API_URL + 'part4', {
+method: 'PUT',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ name: editingSubmission.userName, part4_text: part4 })
+});
+var putResult = await putResp.json();
+if (putResult.success) {
+setStatus('批注已保存 ✅', 'success');
+editingSubmission = null;
+btn.textContent = '💾 保存批注';
+} else {
+throw new Error(putResult.error || 'Unknown');
+}
+} catch(err) {
+console.error(err);
+setStatus('保存失败: ' + err.message, 'error');
+btn.textContent = '💾 保存批注';
+}
+isSubmitting = false;
+btn.disabled = false;
+return;
+}
+
+// New submission validation
 var bio = document.getElementById('text-bio').value.trim();
 var hasContent = false;
 for (var i = 1; i <= 3; i++) {
@@ -718,57 +688,28 @@ submission[key === 'bio' ? 'bio_audio' : 'part' + key + '_audio'] = b64;
 }
 }
 
-// Save/update in IndexedDB
-if (editingSubmissionId) {
-// Update existing submission: keep all original fields, only update part4
-var existing = await dbGet('submissions', editingSubmissionId);
-if (existing) {
-existing.part4_text = submission.part4_text || '';
-await dbPut('submissions', existing, editingSubmissionId);
-submission.id = editingSubmissionId;
-}
-} else {
-var id = await dbPut('submissions', submission);
-submission.id = id;
-}
-
-// Update user profile
-if (bio && (!currentUser.bio || bio !== currentUser.bio)) {
-currentUser.bio = bio;
-await dbPut('users', currentUser);
-}
-
-// Submit to GitHub (skip for part4-only edits)
-if (!editingSubmissionId) {
+// Submit to cloud
 setStatus('提交到云端...', '');
-submitToGitHub(submission, 0, btn);
-} else {
-// Part4 edit: local-only save, no cloud submission
-setStatus('批注已保存到本地 ✅', 'success');
-editingSubmissionId = null;
-btn.textContent = '💾 保存批注';
-btn.disabled = false;
-isSubmitting = false;
-}
+await submitToCloud(submission, 0, btn);
 
 } catch (err) {
 console.error(err);
-setStatus('处理失败，请重试', 'error');
-btn.textContent = editingSubmissionId ? '💾 保存批注' : '重新提交';
+setStatus('提交失败，请重试', 'error');
+btn.textContent = '重新提交';
 btn.disabled = false;
 isSubmitting = false;
 }
 }
 
-function submitToGitHub(payload, retryCount, btn) {
-var payloadStr = JSON.stringify(payload);
+function submitToCloud(payload, retryCount, btn) {
+return new Promise(function(resolve, reject) {
 var controller = new AbortController();
 var fetchTimeout = setTimeout(function() { controller.abort(); }, 60000);
 
 fetch(API_URL, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
-body: payloadStr,
+body: JSON.stringify(payload),
 signal: controller.signal
 }).then(function(r) {
 clearTimeout(fetchTimeout);
@@ -779,61 +720,32 @@ if (result.success) {
 document.getElementById('surveyForm').style.display = 'none';
 document.getElementById('thanksBox').classList.add('show');
 document.getElementById('submitStatus').textContent = '';
-clearLocalPending();
 isSubmitting = false;
+resolve();
 } else if (result.error && result.error.indexOf('sha') >= 0 && retryCount < 3) {
 setStatus('云端冲突自动重试... (' + (retryCount+1) + '/3)', '');
-setTimeout(function() { submitToGitHub(payload, retryCount+1, btn); }, 800);
+setTimeout(function() { submitToCloud(payload, retryCount+1, btn).then(resolve).catch(reject); }, 800);
 } else {
 throw new Error(result.error || 'Unknown');
 }
 }).catch(function(err) {
 clearTimeout(fetchTimeout);
 console.error('Submit error:', err);
-if (err.name === 'AbortError') {
+if (err.name === 'AbortError' && retryCount < 3) {
 setStatus('云端超时，第' + (retryCount+1) + '次重试...', 'error');
-if (retryCount < 3) {
-setTimeout(function() { submitToGitHub(payload, retryCount+1, btn); }, 2000);
-} else {
-setStatus('云端暂不可用，已保存在本地', 'error');
-saveLocal(payload);
-btn.textContent = '重新提交';
-btn.disabled = false;
-isSubmitting = false;
-}
+setTimeout(function() { submitToCloud(payload, retryCount+1, btn).then(resolve).catch(reject); }, 2000);
 } else if (retryCount < 3) {
 setStatus('网络重试... (' + (retryCount+1) + '/3)', 'error');
-setTimeout(function() { submitToGitHub(payload, retryCount+1, btn); }, 1500);
+setTimeout(function() { submitToCloud(payload, retryCount+1, btn).then(resolve).catch(reject); }, 1500);
 } else {
-setStatus('云端暂不可用，已保存在本地', 'error');
-saveLocal(payload);
 btn.textContent = '重新提交';
 btn.disabled = false;
 isSubmitting = false;
+reject(err);
 }
 });
+});
 }
-
-function saveLocal(payload) {
-try {
-var saved = JSON.parse(localStorage.getItem('jiaren_pending') || '[]');
-saved.push(payload);
-localStorage.setItem('jiaren_pending', JSON.stringify(saved));
-} catch(e) {}
-}
-function clearLocalPending() {
-try { localStorage.removeItem('jiaren_pending'); } catch(e) {}
-}
-
-// Retry pending
-(function() {
-try {
-var pending = JSON.parse(localStorage.getItem('jiaren_pending') || '[]');
-if (pending.length > 0) {
-pending.forEach(function(p) { submitToGitHub(p, 0, { textContent: '', disabled: false }); });
-}
-} catch(e) {}
-})();
 
 // ===== Helpers =====
 function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -843,12 +755,6 @@ d.textContent = s;
 return d.innerHTML;
 }
 
-// ===== Init =====
-openDB().then(function() {
-// Ready
-}).catch(function(e) {
-console.error('DB init failed:', e);
-});
 </script>
 </body>
 </html>
