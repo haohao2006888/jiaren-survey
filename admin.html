@@ -85,6 +85,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 <script>
 var allSubs = [];
 var apiStatus = '';
+var PROXY_URL = 'https://serene-cricket-35.haohao2006888.deno.net/';
 
 async function refreshData() {
 document.getElementById('loadingMsg').style.display = 'block';
@@ -206,9 +207,14 @@ html += '</tbody></table>';
 document.getElementById('tableWrap').innerHTML = html;
 }
 
+var editingDetailIdx = -1;
+var part4Saved = false;
+
 function showDetail(idx) {
 var s = allSubs[idx];
 if (!s) return;
+editingDetailIdx = idx;
+part4Saved = false;
 var d = new Date(s.time || s._received || '');
 var html = '<button class="close-btn" onclick="closeDetail()">✕</button>' +
 '<h3>' + esc(s.userName || s.name || '?') + ' · ' + d.toLocaleString('zh-CN') + '</h3>';
@@ -217,7 +223,6 @@ var fields = [
 {label:'第一部分 · 经典原文', value:s.part1_text},
 {label:'第二部分 · 读后智慧', value:s.part2_text},
 {label:'第三部分 · 人生联想', value:s.part3_text},
-{label:'第四部分 · 创始人批注', value:s.part4_text},
 {label:'联系方式', value:s.contact}
 ];
 fields.forEach(function(f) {
@@ -225,17 +230,86 @@ if (f.value) {
 html += '<div class="detail-field"><div class="df-label">' + f.label + '</div><div class="df-value">' + esc(f.value) + '</div></div>';
 }
 });
-html += '<div class="detail-field"><div class="df-label">原始数据</div><div class="df-value" style="font-size:12px;color:#8c7a5c">' +
-esc(JSON.stringify(s, function(k,v) { return k.endsWith('_audio') ? '[音频 ' + v.length + ' 字符]' : v; }, 2)) +
+// Part4: editable
+html += '<div class="detail-field" style="background:#fffef9;padding:14px;border-radius:10px;border:2px dashed #c9a96e;margin-top:8px">' +
+'<div class="df-label" style="color:#c9a96e;font-size:14px">✍️ 第四部分 · 创始人批注（你的感触写这里）</div>' +
+'<textarea id="detailPart4Text" style="width:100%;min-height:100px;margin-top:8px;padding:10px;border:1.6px solid #e8dcc8;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;background:#fff" placeholder="读了上面的内容后，写下你的感触...">' + esc(s.part4_text || '') + '</textarea>' +
+'<div style="display:flex;align-items:center;gap:10px;margin-top:10px">' +
+'<button class="btn btn-primary" onclick="savePart4()" id="btnSavePart4">💾 保存批注</button>' +
+'<span id="savePart4Status" style="font-size:13px;color:#8c7a5c"></span>' +
 '</div></div>';
+// Raw data toggle
+html += '<details style="margin-top:12px;font-size:12px;color:#8c7a5c"><summary>📄 原始数据</summary><pre style="white-space:pre-wrap;font-size:11px;margin-top:6px">' +
+esc(JSON.stringify(s, function(k,v) { return k.endsWith('_audio') ? '[音频 ' + v.length + ' 字符]' : v; }, 2)) +
+'</pre></details>';
 document.getElementById('detailPanel').innerHTML = html;
 document.getElementById('detailPanel').classList.add('show');
 document.getElementById('overlay').classList.add('show');
 }
 
+async function savePart4() {
+var newText = document.getElementById('detailPart4Text').value;
+var s = allSubs[editingDetailIdx];
+if (!s) return;
+var statusEl = document.getElementById('savePart4Status');
+var btn = document.getElementById('btnSavePart4');
+btn.textContent = '保存中...';
+btn.disabled = true;
+statusEl.textContent = '';
+
+try {
+var resp = await fetch(PROXY_URL + 'part4', {
+method: 'PUT',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+name: s.userName || s.name,
+time: s.time || s._received,
+part4_text: newText
+})
+});
+if (!resp.ok) throw new Error('HTTP ' + resp.status);
+var result = await resp.json();
+if (result.success) {
+s.part4_text = newText;
+allSubs[editingDetailIdx] = s;
+part4Saved = true;
+statusEl.textContent = '✅ 已保存到云端';
+statusEl.style.color = '#2e7d32';
+btn.textContent = '✓ 已保存';
+setTimeout(function() {
+btn.textContent = '💾 保存批注';
+btn.disabled = false;
+}, 2000);
+// Refresh table to show updated part4
+renderTable();
+} else {
+throw new Error(result.error || 'Unknown');
+}
+} catch(e) {
+// Fallback: save locally
+s.part4_text = newText;
+allSubs[editingDetailIdx] = s;
+part4Saved = true;
+statusEl.textContent = '⚠️ 已存本地（云端暂不可用）';
+statusEl.style.color = '#e65100';
+btn.textContent = '✓ 已保存（本地）';
+btn.disabled = false;
+renderTable();
+console.error('Part4 save error:', e);
+}
+}
+
 function closeDetail() {
+if (editingDetailIdx >= 0 && !part4Saved) {
+var currentText = document.getElementById('detailPart4Text')?.value || '';
+var origText = allSubs[editingDetailIdx]?.part4_text || '';
+if (currentText !== origText) {
+if (!confirm('批注尚未保存，确定关闭吗？')) return;
+}
+}
 document.getElementById('detailPanel').classList.remove('show');
 document.getElementById('overlay').classList.remove('show');
+editingDetailIdx = -1;
 }
 
 function exportJSON() {
