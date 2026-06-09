@@ -546,15 +546,42 @@ recognition.interimResults = true;
 recognition.continuous = true;
 var textareaId = (part === 'bio') ? 'text-bio' : 'text-part' + part;
 var textarea = document.getElementById(textareaId);
+
+// Save existing text as base (user may have typed manually)
+var baseText = textarea ? textarea.value : '';
+
 recognition.onresult = function(e) {
-var t = '';
-for (var i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
-if (textarea && t) {
-textarea.value += t;
+var finalText = '';
+var interimText = '';
+for (var i = 0; i < e.results.length; i++) {
+var r = e.results[i];
+if (r.isFinal) {
+finalText += r[0].transcript;
+} else {
+interimText += r[0].transcript;
+}
+}
+if (textarea) {
+textarea.value = baseText + finalText + interimText;
 textarea.scrollTop = textarea.scrollHeight;
 }
 };
-recognition.onerror = function(e) { console.warn('Speech error:', e.error); };
+recognition.onend = function() {
+// On end, merge final speech text into base
+if (textarea) {
+var finalText = '';
+// Re-read current text, stripping interim
+var currentVal = textarea.value;
+// Just keep whatever is currently displayed as the new base
+// (interim text from onresult was already in the value)
+textarea.setAttribute('data-speech-active', '0');
+}
+};
+recognition.onerror = function(e) {
+console.warn('Speech error:', e.error);
+// On error, keep whatever text we have
+if (textarea) textarea.setAttribute('data-speech-active', '0');
+};
 recognition.start();
 }
 
