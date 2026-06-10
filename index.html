@@ -320,7 +320,7 @@ if (resp.ok) all = await resp.json();
 } catch(e) { console.warn('Proxy fetch failed, trying GitHub fallback:', e.message); }
 
 // Fallback: read directly from GitHub raw (works even when proxy is down)
-if (!all) {
+if (!all || (Array.isArray(all) && all.length === 0)) {
 try {
 var rawResp = await fetch(
 'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions.json',
