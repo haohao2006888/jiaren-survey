@@ -115,7 +115,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 </head>
 <body>
 
-<div class="browser-notice" id="browserNotice" style="display:none">⚠️ 请用浏览器打开，微信不支持语音输入。右上角「在浏览器中打开」</div>
+<div class="browser-notice" id="browserNotice" style="display:none">⚠️ 微信不支持语音。安卓用户请用 Chrome 打开（右上角「在浏览器中打开」）。安卓语音转文字受国内网络限制，请直接打字。</div>
 <div class="header">
 <h1>家人学习调研</h1>
 <div class="brand">伟大印记</div>
@@ -500,12 +500,14 @@ if (currentVoiceBar && currentVoiceBar !== bar) {
 stopRecording(currentVoiceBar, currentPartKey);
 }
 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-alert('您的浏览器不支持录音。请用 Safari 或 Chrome 打开。');
+var isAndroid = /Android/i.test(navigator.userAgent);
+alert(isAndroid ? '您的浏览器不支持录音。请用 Chrome 浏览器打开此页面。' : '您的浏览器不支持录音。请用 Safari 或 Chrome 打开。');
 return;
 }
 navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
 audioChunks = [];
-var mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : (MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '');
+// Android Chrome prefers codecs=opus; desktop Chrome handles plain webm fine
+var mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : (MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : ''));
 var opts = mimeType ? { mimeType: mimeType } : {};
 mediaRecorder = new MediaRecorder(stream, opts);
 
@@ -543,8 +545,13 @@ bar.querySelector('.vb-status').textContent = formatTime(secondsLeft);
 
 var ap = document.getElementById('ap-' + partName(part));
 if (ap) ap.classList.remove('show');
-}).catch(function() {
+}).catch(function(e) {
+var isAndroid = /Android/i.test(navigator.userAgent);
+if (isAndroid) {
+alert('无法访问麦克风。请在手机设置→应用→Chrome→权限中开启麦克风。');
+} else {
 alert('无法访问麦克风，请检查权限设置。');
+}
 });
 }
 
@@ -625,8 +632,20 @@ if (textarea) textarea.setAttribute('data-speech-active', '0');
 
 recognition.onerror = function(e) {
 console.warn('SpeechRecognition error:', e.error);
-// On 'no-speech' or 'aborted', keep whatever text was recognized
 if (textarea) textarea.setAttribute('data-speech-active', '0');
+// Android in China: Google speech servers blocked → network error
+if (e.error === 'network' || e.error === 'service-not-allowed') {
+var isAndroid = /Android/i.test(navigator.userAgent);
+if (isAndroid) {
+textarea.placeholder = '⚠️ 语音转文字不可用（国内安卓限制）。请直接打字输入。';
+} else {
+textarea.placeholder = '⚠️ 语音服务连接失败，请检查网络或直接打字。';
+}
+} else if (e.error === 'not-allowed') {
+textarea.placeholder = '⚠️ 请授予麦克风权限后重试。';
+} else if (e.error !== 'no-speech' && e.error !== 'aborted') {
+textarea.placeholder = '语音识别中断（' + e.error + '），可继续打字。';
+}
 };
 
 recognition.start();
