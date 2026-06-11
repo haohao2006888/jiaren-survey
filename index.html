@@ -281,6 +281,62 @@ var countdownTimer = null;
 var secondsLeft = 0;
 var audioBlobs = {}; // { 'bio': blob, '1': blob, ... }
 
+// ===== PCM 音频转换（Web Audio API，全平台兼容）=====
+function convertWebmToPCM(blob) {
+  return new Promise(function(resolve, reject) {
+    try {
+      blob.arrayBuffer().then(function(arrayBuffer) {
+        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtx.decodeAudioData(arrayBuffer).then(function(audioBuffer) {
+          // Resample to 16kHz mono
+          var sampleRate = 16000;
+          var offlineCtx = new OfflineAudioContext(1, audioBuffer.duration * sampleRate, sampleRate);
+          var source = offlineCtx.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(offlineCtx.destination);
+          source.start();
+          offlineCtx.startRendering().then(function(renderedBuffer) {
+            var floatData = renderedBuffer.getChannelData(0);
+            // Convert Float32 [-1,1] to Int16
+            var int16 = new Int16Array(floatData.length);
+            for (var i = 0; i < floatData.length; i++) {
+              var s = Math.max(-1, Math.min(1, floatData[i]));
+              int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+            // Convert to base64
+            var bytes = new Uint8Array(int16.buffer);
+            var binary = '';
+            for (var i2 = 0; i2 < bytes.length; i2++) {
+              binary += String.fromCharCode(bytes[i2]);
+            }
+            resolve(btoa(binary));
+          }).catch(reject);
+        }).catch(reject);
+      }).catch(reject);
+    } catch(e) { reject(e); }
+  });
+}
+
+// 调用 Deno 代理的 /stt 接口（Baidu ASR）
+function callSttProxy(pcmBase64, format, rate) {
+  return new Promise(function(resolve, reject) {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', API_URL + 'stt', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onload = function() {
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          if (resp.text !== undefined) resolve(resp.text);
+          else reject(new Error(resp.error || 'STT failed'));
+        } catch(e) { reject(e); }
+      };
+      xhr.onerror = function() { reject(new Error('Network error')); };
+      xhr.send(JSON.stringify({ audio: pcmBase64, format: format || 'pcm', rate: rate || 16000, lang: 'zh' }));
+    } catch(e) { reject(e); }
+  });
+}
+
 // ===== View Switching =====
 function showView(viewId) {
 document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
@@ -517,11 +573,51 @@ stream.getTracks().forEach(function(t) { t.stop(); });
 var blob = new Blob(audioChunks, { type: mimeType || 'audio/webm' });
 audioBlobs[part] = blob;
 showAudioPlayback(part, blob);
+
+// ── Proxy STT: primary speech-to-text (works on ALL platforms) ──
+var capturedPart = part;
+var textareaId = (capturedPart === 'bio') ? 'text-bio' : 'text-part' + capturedPart;
+var textarea = document.getElementById(textareaId);
+// Save text that was there BEFORE this recording (not from SpeechRecognition)
+var preRecordText = textarea ? (textarea.getAttribute('data-pre-record') || '') : '';
+if (textarea) textarea.placeholder = '🔄 正在转文字...';
+
+convertWebmToPCM(blob).then(function(pcmBase64) {
+return callSttProxy(pcmBase64, 'pcm', 16000);
+}).then(function(text) {
+if (text && textarea) {
+// STT is authoritative — replace any SpeechRecognition preview
+if (preRecordText) {
+textarea.value = preRecordText + (preRecordText ? '\n' : '') + text;
+} else {
+textarea.value = text;
+}
+textarea.placeholder = '';
+textarea.setAttribute('data-speech-active', '1');
+}
+}).catch(function(err) {
+console.warn('STT proxy failed:', err);
+if (textarea) {
+// If SpeechRecognition produced text, keep it; otherwise show error
+var hasText = textarea.value && textarea.value !== preRecordText;
+if (!hasText) {
+textarea.placeholder = '语音转文字失败，请手动输入。';
+} else {
+textarea.placeholder = '';
+}
+}
+});
 };
 
 mediaRecorder.start();
 currentPartKey = part;
 currentVoiceBar = bar;
+
+// Save pre-recording text so STT can merge properly
+var textareaId = (part === 'bio') ? 'text-bio' : 'text-part' + part;
+var textarea = document.getElementById(textareaId);
+if (textarea) textarea.setAttribute('data-pre-record', textarea.value || '');
+
 startSpeechRecognition(bar, part);
 
 bar.classList.add('recording');
@@ -633,19 +729,13 @@ if (textarea) textarea.setAttribute('data-speech-active', '0');
 recognition.onerror = function(e) {
 console.warn('SpeechRecognition error:', e.error);
 if (textarea) textarea.setAttribute('data-speech-active', '0');
-// Android in China: Google speech servers blocked → network error
+// On network error (Android China / no VPN), just wait for STT proxy
 if (e.error === 'network' || e.error === 'service-not-allowed') {
-var isAndroid = /Android/i.test(navigator.userAgent);
-if (isAndroid) {
-textarea.placeholder = '⚠️ 语音转文字不可用（国内安卓限制）。请直接打字输入。';
-} else {
-textarea.placeholder = '⚠️ 语音服务连接失败，请检查网络或直接打字。';
-}
+textarea.placeholder = '🔄 正在转文字...';
 } else if (e.error === 'not-allowed') {
 textarea.placeholder = '⚠️ 请授予麦克风权限后重试。';
-} else if (e.error !== 'no-speech' && e.error !== 'aborted') {
-textarea.placeholder = '语音识别中断（' + e.error + '），可继续打字。';
 }
+// no-speech and aborted are normal — STT proxy will handle
 };
 
 recognition.start();
