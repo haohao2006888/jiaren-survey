@@ -11,7 +11,7 @@
   brew install ffmpeg   # macOS
 """
 
-import base64, hashlib, json, os, subprocess, sys, tempfile, time
+import base64, json, os, subprocess, sys, tempfile, time
 from difflib import SequenceMatcher
 
 try:

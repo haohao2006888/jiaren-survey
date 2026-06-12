@@ -117,7 +117,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 </head>
 <body>
 
-<div class="browser-notice" id="browserNotice" style="display:none">⚠️ 微信内置浏览器不支持语音功能。请点击右上角「在浏览器中打开」，用 Chrome/Safari 访问即可使用语音转文字。</div>
+<div class="browser-notice" id="browserNotice" style="display:none">⚠️ 微信内置浏览器不支持语音功能。请点击右上角「在浏览器中打开」，用 Chrome/Safari 访问即可使用录音功能。</div>
 <div class="header">
 <h1>家人学习调研</h1>
 <div class="brand">伟大印记</div>
@@ -697,7 +697,6 @@ var textareaId = (part === 'bio') ? 'text-bio' : 'text-part' + part;
 var textarea = document.getElementById(textareaId);
 if (textarea) {
 textarea.value = '';
-textarea.removeAttribute('data-speech-active');
 }
 }
 }
@@ -794,7 +793,7 @@ for (var i = 1; i <= 3; i++) {
 if (document.getElementById('text-part' + i).value.trim()) hasContent = true;
 if (audioBlobs[i]) hasContent = true;
 }
-if (!bio && !hasContent) { setStatus('至少填写个人简介或完成一个部分的录音', 'error'); return; }
+if (!bio && !audioBlobs['bio'] && !hasContent) { setStatus('至少填写个人简介或完成一个部分的录音', 'error'); return; }
 
 isSubmitting = true;
 var btn = document.getElementById('btnSubmit');
