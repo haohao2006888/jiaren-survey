@@ -313,7 +313,7 @@ document.getElementById('historyList').innerHTML = '<div class="empty-history">å
 var subs = [];
 var all = null;
 try {
-var resp = await fetch(API_URL, { headers: { 'Accept': 'application/json' } });
+var resp = await fetch(API_URL);
 if (resp.ok) all = await resp.json();
 } catch(e) { console.warn('Proxy fetch failed, trying GitHub fallback:', e.message); }
 
@@ -321,8 +321,7 @@ if (resp.ok) all = await resp.json();
 if (!all || (Array.isArray(all) && all.length === 0)) {
 try {
 var rawResp = await fetch(
-'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions.json',
-{ headers: { 'Accept': 'application/json' } }
+'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions.json'
 );
 if (rawResp.ok) {
 all = await rawResp.json();
@@ -382,7 +381,7 @@ if (!sub) return;
 
 // Re-fetch full submission with audio data (dashboard strips audio for speed)
 try {
-var resp = await fetch(API_URL, { headers: { 'Accept': 'application/json' } });
+var resp = await fetch(API_URL);
 if (resp.ok) {
 var all = await resp.json();
 var full = all.find(function(s) {
