@@ -264,6 +264,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 // ===== Config =====
 // Data proxy (Deno) â€” GET/POST submissions + PUT part4
 var API_URL = 'https://strong-butterfly-68.haohao2006888.deno.net/';
+var CLEAN_URL = 'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions-clean.json';
 var DURATIONS = { bio: 360, 1: 360, 2: 360, 3: 360 }; // seconds per part
 
 // ===== State (no local storage, data lives on GitHub via Deno proxy) =====
@@ -313,7 +314,6 @@ document.getElementById('historyList').innerHTML = '<div class="empty-history">å
 var subs = [];
 var all = null;
 var fromClean = false;
-var CLEAN_URL = 'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions-clean.json';
 try {
 var rawResp = await fetch(CLEAN_URL);
 if (rawResp.ok) { all = await rawResp.json(); fromClean = true; }
@@ -766,7 +766,7 @@ try {
 var putResp = await fetch(API_URL + 'part4', {
 method: 'PUT',
 headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ name: editingSubmission.userName, part4_text: part4 })
+body: JSON.stringify({ name: editingSubmission.userName, time: editingSubmission.time, part4_text: part4 })
 });
 var putResult = await putResp.json();
 if (putResult.success) {

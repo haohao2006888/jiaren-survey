@@ -170,10 +170,11 @@ var html = '<table class="sub-table"><thead><tr>' +
 '<th>时间</th><th>名字</th><th>简介</th><th>P1原文</th><th>P2智慧</th><th>P3联想</th><th>P4批注</th><th></th>' +
 '</tr></thead><tbody>';
 
-filtered.forEach(function(s, idx) {
+filtered.forEach(function(s, fidx) {
 var d = new Date(s.time || s._received || '');
 var dateStr = d.getFullYear() + '/' + pad(d.getMonth()+1) + '/' + pad(d.getDate());
 var name = s.userName || s.name || '?';
+var realIdx = allSubs.indexOf(s); // use original index for showDetail
 var parts = [];
 if (s.bio) parts.push('<span class="tag tag-bio">简介</span>');
 for (var i = 1; i <= 4; i++) {
@@ -181,7 +182,7 @@ if (s['part' + i + '_text']) parts.push('<span class="tag tag-txt">P' + i + '</s
 }
 if (parts.length >= 3) parts.push('<span class="tag tag-filled">完整</span>');
 
-html += '<tr onclick="showDetail(' + idx + ')">' +
+html += '<tr onclick="showDetail(' + realIdx + ')">' +
 '<td style="white-space:nowrap">' + dateStr + '</td>' +
 '<td><strong>' + esc(name) + '</strong></td>' +
 '<td class="td-preview">' + esc(trunc(s.bio||'',40)) + '</td>' +
