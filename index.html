@@ -312,10 +312,11 @@ document.getElementById('historyList').innerHTML = '<div class="empty-history">å
 // Load submissions â€” try clean GitHub file first (fast), fallback to Deno proxy
 var subs = [];
 var all = null;
+var fromClean = false;
 var CLEAN_URL = 'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions-clean.json';
 try {
 var rawResp = await fetch(CLEAN_URL);
-if (rawResp.ok) all = await rawResp.json();
+if (rawResp.ok) { all = await rawResp.json(); fromClean = true; }
 } catch(e) { console.warn('Clean file fetch failed, trying Deno proxy:', e.message); }
 
 // Fallback: Deno proxy (slower but has up-to-date data)
@@ -323,11 +324,23 @@ if (!all || (Array.isArray(all) && all.length === 0)) {
 try {
 var resp = await fetch(API_URL);
 if (resp.ok) all = await resp.json();
+fromClean = false;
 } catch(e2) { console.error('Deno proxy also failed:', e2.message); }
 }
 
 if (all) {
 subs = all.filter(function(s) { return s.userName === currentUser.name; });
+// If clean file had data but none match user, try Deno proxy which may have newer entries
+if (fromClean && subs.length === 0 && all.length > 0) {
+try {
+var respFallback = await fetch(API_URL);
+if (respFallback.ok) {
+var allFb = await respFallback.json();
+var fbSubs = allFb.filter(function(s) { return s.userName === currentUser.name; });
+if (fbSubs.length > 0) { subs = fbSubs; } // use proxy data if it has matches
+}
+} catch(e3) { /* keep clean results */ }
+}
 subs.sort(function(a, b) { return new Date(b.time) - new Date(a.time); });
 }
 
@@ -370,16 +383,26 @@ if (!sub) return;
 
 // Re-fetch full submission with audio data (dashboard strips audio for speed)
 try {
+var full = null;
 // Try clean file first (fast)
 var resp = await fetch(CLEAN_URL);
-if (!resp.ok) resp = await fetch(API_URL); // fallback to Deno proxy
 if (resp.ok) {
 var all = await resp.json();
-var full = all.find(function(s) {
+full = all.find(function(s) {
 return s.userName === sub.userName && s.time === sub.time;
 });
-if (full) sub = full;
 }
+// If not found in clean file, try Deno proxy (has newer entries)
+if (!full) {
+resp = await fetch(API_URL);
+if (resp.ok) {
+var all2 = await resp.json();
+full = all2.find(function(s) {
+return s.userName === sub.userName && s.time === sub.time;
+});
+}
+}
+if (full) sub = full;
 } catch(e) { console.warn('Could not fetch audio for playback:', e.message); }
 
 editingSubmission = sub;
