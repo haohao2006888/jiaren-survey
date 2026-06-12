@@ -92,10 +92,7 @@ document.getElementById('loadingMsg').style.display = 'block';
 document.getElementById('tableWrap').innerHTML = '';
 apiStatus = '';
 try {
-var resp = await fetch('https://strong-butterfly-68.haohao2006888.deno.net/', {
-method: 'GET',
-headers: {'Accept': 'application/json'}
-});
+var resp = await fetch('https://strong-butterfly-68.haohao2006888.deno.net/');
 if (!resp.ok) throw new Error('HTTP ' + resp.status);
 allSubs = await resp.json();
 apiStatus = '✅ GET 接口正常 · ' + allSubs.length + ' 条';
@@ -103,13 +100,12 @@ apiStatus = '✅ GET 接口正常 · ' + allSubs.length + ' 条';
 apiStatus = '⚠️ GET 接口未就绪: ' + e.message + ' · 尝试直读 GitHub...';
 try {
 var rawResp = await fetch(
-'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions.json',
-{headers:{'Accept':'application/json'}}
+'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions.json'
 );
 if (!rawResp.ok) throw new Error('HTTP ' + rawResp.status);
 allSubs = await rawResp.json();
-// Strip audio fields if present
-allSubs = allSubs.map(function(s) {
+// Strip audio fields AND filter out test/non-user entries
+allSubs = allSubs.filter(function(s) { return s.userName || s.name; }).map(function(s) {
 var clone = {};
 Object.keys(s).forEach(function(k) {
 if (!k.endsWith('_audio') && k !== 'ua') clone[k] = s[k];
