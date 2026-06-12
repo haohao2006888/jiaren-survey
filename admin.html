@@ -100,18 +100,10 @@ apiStatus = '✅ GET 接口正常 · ' + allSubs.length + ' 条';
 apiStatus = '⚠️ GET 接口未就绪: ' + e.message + ' · 尝试直读 GitHub...';
 try {
 var rawResp = await fetch(
-'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions.json'
+'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions-clean.json'
 );
 if (!rawResp.ok) throw new Error('HTTP ' + rawResp.status);
 allSubs = await rawResp.json();
-// Strip audio fields AND filter out test/non-user entries
-allSubs = allSubs.filter(function(s) { return s.userName || s.name; }).map(function(s) {
-var clone = {};
-Object.keys(s).forEach(function(k) {
-if (!k.endsWith('_audio') && k !== 'ua') clone[k] = s[k];
-});
-return clone;
-});
 apiStatus = '✅ GitHub 直读 · ' + allSubs.length + ' 条';
 } catch(e2) {
 apiStatus = '❌ 全部失败: GET=' + e.message + ' | Raw=' + e2.message;

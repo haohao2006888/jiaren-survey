@@ -321,18 +321,10 @@ if (resp.ok) all = await resp.json();
 if (!all || (Array.isArray(all) && all.length === 0)) {
 try {
 var rawResp = await fetch(
-'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions.json'
+'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions-clean.json'
 );
 if (rawResp.ok) {
 all = await rawResp.json();
-// Filter out test entries and strip audio
-all = all.filter(function(s) { return s.userName; }).map(function(s) {
-var clean = {};
-Object.keys(s).forEach(function(k) {
-if (!k.endsWith('_audio') && k !== 'ua') clean[k] = s[k];
-});
-return clean;
-});
 }
 } catch(e2) { console.error('GitHub fallback also failed:', e2.message); }
 }
