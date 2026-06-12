@@ -32,7 +32,6 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .dash-user{background:#fff;border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
 .dash-user .du-name{font-size:20px;font-weight:700;color:#1a1206}
 .dash-user .du-meta{font-size:14px;color:#8c7a5c;margin-top:4px;line-height:1.6}
-.dash-user .du-bio{font-size:14px;color:#4a3828;margin-top:8px;padding:10px 14px;background:#fdf8f0;border-radius:8px;line-height:1.6}
 .dash-actions{display:flex;gap:12px;margin-bottom:24px}
 .btn-new{flex:1;padding:16px;background:#2c2416;color:#fdf8f0;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;text-align:center;letter-spacing:1px;transition:all .2s}
 .btn-new:active{background:#4a3828;transform:scale(.98)}
@@ -55,9 +54,6 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .q-guide .guide-icon{font-size:20px;margin-right:6px;vertical-align:-2px}
 .dur-badge{display:inline-block;background:#e8dcc8;color:#4a3828;font-size:11px;padding:1px 8px;border-radius:8px;margin-left:6px;vertical-align:middle}
 .founder-label{display:inline-block;background:#c9a96e;color:#fff;font-size:11px;padding:2px 10px;border-radius:10px;margin-left:8px;vertical-align:middle;letter-spacing:1px}
-.inline-input{width:100%;padding:14px;font-size:16px;border:1.6px solid #e8dcc8;border-radius:10px;background:#fdf8f0;font-family:inherit;margin-top:8px;transition:border-color .2s}
-.inline-input:focus{outline:none;border-color:#c9a96e;background:#fff}
-.inline-input:first-child{margin-top:0}
 
 .voice-bar{display:flex;align-items:center;gap:10px;padding:14px 18px;margin:12px 0 16px;border-radius:28px;background:#fff;border:1.8px solid #d4c5a0;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:all .25s}
 .voice-bar:active{background:#f5f0e8}
@@ -175,7 +171,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 <audio id="audio-bio" controls></audio>
 <span class="ap-dur" id="dur-bio"></span>
 </div>
-<textarea id="text-bio" placeholder="语音识别的内容会出现在这里，也可以手动输入..."></textarea>
+<textarea id="text-bio" placeholder="转写后的文字会出现在这里，也可以直接输入..."></textarea>
 </div>
 
 <!-- 第一部分 -->
@@ -196,7 +192,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 <audio id="audio-part1" controls></audio>
 <span class="ap-dur" id="dur-part1"></span>
 </div>
-<textarea id="text-part1" placeholder="语音识别的内容会出现在这里，也可以手动修改..."></textarea>
+<textarea id="text-part1" placeholder="转写后的文字会出现在这里，也可以直接输入..."></textarea>
 </div>
 
 <!-- 第二部分 -->
@@ -217,7 +213,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 <audio id="audio-part2" controls></audio>
 <span class="ap-dur" id="dur-part2"></span>
 </div>
-<textarea id="text-part2" placeholder="语音识别的内容会出现在这里，也可以手动修改..."></textarea>
+<textarea id="text-part2" placeholder="转写后的文字会出现在这里，也可以直接输入..."></textarea>
 </div>
 
 <!-- 第三部分 -->
@@ -238,7 +234,7 @@ textarea.founder-textarea{min-height:100px;background:#fffef9}
 <audio id="audio-part3" controls></audio>
 <span class="ap-dur" id="dur-part3"></span>
 </div>
-<textarea id="text-part3" placeholder="语音识别的内容会出现在这里，也可以手动修改..."></textarea>
+<textarea id="text-part3" placeholder="转写后的文字会出现在这里，也可以直接输入..."></textarea>
 </div>
 
 <!-- 第四部分 -->
@@ -485,14 +481,8 @@ allBars.forEach(function(id) {
 var vb = document.getElementById(id);
 if (!vb) return;
 vb.classList.remove('recording', 'has-audio');
-if (id === 'vb-bio') {
 vb.querySelector('.vb-icon').textContent = '🎤';
-vb.querySelector('.vb-text').textContent = '点我录音介绍自己';
-} else {
-var p = id.replace('vb-part', '');
-vb.querySelector('.vb-icon').textContent = '🎤';
-vb.querySelector('.vb-text').textContent = '点我录音' + (p === '1' ? '（最长3分钟）' : (p === '2' ? '（最长5分钟）' : '（最长6分钟）'));
-}
+vb.querySelector('.vb-text').textContent = voiceLabel((id === 'vb-bio') ? 'bio' : id.replace('vb-part', ''), false);
 vb.querySelector('.vb-status').textContent = '';
 });
 // Reset audio playback
@@ -606,20 +596,18 @@ mediaRecorder = null;
 if (bar) {
 bar.classList.remove('recording');
 bar.querySelector('.vb-icon').textContent = '🎤';
-var label = '点我重新录音';
-if (part === 'bio') label = '点我重新录音';
-else if (part === '1') label = '点我重新录音（最长3分钟）';
-else if (part === '2') label = '点我重新录音（最长5分钟）';
-else if (part === '3') label = '点我重新录音（最长6分钟）';
-bar.querySelector('.vb-text').textContent = label;
+bar.querySelector('.vb-text').textContent = voiceLabel(part, true);
 bar.querySelector('.vb-status').textContent = '';
-if (audioBlobs[part]) {
-bar.classList.add('has-audio');
-bar.querySelector('.vb-status').textContent = '✓ 已录音';
-}
 }
 currentPartKey = null;
 currentVoiceBar = null;
+}
+
+function voiceLabel(part, isRerecord) {
+if (part === 'bio') return isRerecord ? '点我重新录音' : '点我录音介绍自己';
+var dur = part === '1' ? '3' : (part === '2' ? '5' : '6');
+var prefix = isRerecord ? '点我重新录音（最长' : '点我录音（最长';
+return prefix + dur + '分钟）';
 }
 
 function showAudioPlayback(part, blob) {
@@ -681,7 +669,7 @@ delete audioBlobs[part];
 if (bar) {
 bar.classList.remove('has-audio', 'recording');
 bar.querySelector('.vb-icon').textContent = '🎤';
-bar.querySelector('.vb-text').textContent = part === 'bio' ? '点我录音介绍自己' : ('点我录音' + (part === '1' ? '（最长3分钟）' : (part === '2' ? '（最长5分钟）' : '（最长6分钟）')));
+bar.querySelector('.vb-text').textContent = voiceLabel(part, false);
 bar.querySelector('.vb-status').textContent = '';
 }
 
