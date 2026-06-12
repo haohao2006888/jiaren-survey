@@ -380,9 +380,22 @@ return '<div class="history-item" onclick="viewSubmission(' + i + ')">' +
 window._dashboardSubs = subs;
 }
 
-function viewSubmission(idx) {
+async function viewSubmission(idx) {
 var sub = window._dashboardSubs && window._dashboardSubs[idx];
 if (!sub) return;
+
+// Re-fetch full submission with audio data (dashboard strips audio for speed)
+try {
+var resp = await fetch(API_URL);
+if (resp.ok) {
+var all = await resp.json();
+var full = all.find(function(s) {
+return s.userName === sub.userName && s.time === sub.time;
+});
+if (full) sub = full;
+}
+} catch(e) { console.warn('Could not fetch audio for playback:', e.message); }
+
 editingSubmission = sub;
 showView('viewSurvey');
 resetSurveyForm();
@@ -404,6 +417,22 @@ document.getElementById('text-part1').value = sub.part1_text || '';
 document.getElementById('text-part2').value = sub.part2_text || '';
 document.getElementById('text-part3').value = sub.part3_text || '';
 document.getElementById('text-part4').value = sub.part4_text || '';
+
+// Load audio recordings for playback
+['bio', '1', '2', '3'].forEach(function(part) {
+var af = (part === 'bio') ? 'bio_audio' : (part + '_audio');
+var b64 = sub[af];
+if (b64) {
+var blob = base64ToBlob(b64);
+audioBlobs[part] = blob;
+showAudioPlayback(part, blob);
+var bar = document.getElementById('vb-' + partName(part));
+if (bar) {
+bar.classList.add('has-audio');
+bar.querySelector('.vb-status').textContent = '✓ 已录音';
+}
+}
+});
 }
 
 function startNewSurvey() {
@@ -690,6 +719,25 @@ reader.onloadend = function() { resolve(reader.result); };
 reader.onerror = reject;
 reader.readAsDataURL(blob);
 });
+}
+
+function base64ToBlob(b64) {
+// Handle data URL prefix: data:audio/webm;base64,...
+var mimeType = 'audio/webm';
+var raw = b64;
+if (b64.indexOf(',') > -1) {
+var parts = b64.split(',');
+var header = parts[0];
+raw = parts.slice(1).join(',');
+var mimeMatch = header.match(/data:([^;]+)/);
+if (mimeMatch) mimeType = mimeMatch[1];
+}
+var byteChars = atob(raw);
+var byteNums = new Array(byteChars.length);
+for (var i = 0; i < byteChars.length; i++) {
+byteNums[i] = byteChars.charCodeAt(i);
+}
+return new Blob([new Uint8Array(byteNums)], { type: mimeType });
 }
 
 // ===== Submit =====
