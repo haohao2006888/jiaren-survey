@@ -91,22 +91,23 @@ async function refreshData() {
 document.getElementById('loadingMsg').style.display = 'block';
 document.getElementById('tableWrap').innerHTML = '';
 apiStatus = '';
-try {
-var resp = await fetch('https://strong-butterfly-68.haohao2006888.deno.net/');
-if (!resp.ok) throw new Error('HTTP ' + resp.status);
-allSubs = await resp.json();
-apiStatus = '✅ GET 接口正常 · ' + allSubs.length + ' 条';
-} catch(e) {
-apiStatus = '⚠️ GET 接口未就绪: ' + e.message + ' · 尝试直读 GitHub...';
+// Primary: clean GitHub file (1.6KB, instant load)
 try {
 var rawResp = await fetch(
 'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions-clean.json'
 );
 if (!rawResp.ok) throw new Error('HTTP ' + rawResp.status);
 allSubs = await rawResp.json();
-apiStatus = '✅ GitHub 直读 · ' + allSubs.length + ' 条';
+apiStatus = '✅ 快速加载 · ' + allSubs.length + ' 条';
+} catch(e) {
+apiStatus = '⚠️ 快速加载失败: ' + e.message + ' · 尝试代理...';
+try {
+var resp = await fetch('https://strong-butterfly-68.haohao2006888.deno.net/');
+if (!resp.ok) throw new Error('HTTP ' + resp.status);
+allSubs = await resp.json();
+apiStatus = '✅ 代理加载 · ' + allSubs.length + ' 条';
 } catch(e2) {
-apiStatus = '❌ 全部失败: GET=' + e.message + ' | Raw=' + e2.message;
+apiStatus = '❌ 全部失败: Clean=' + e.message + ' | Proxy=' + e2.message;
 allSubs = [];
 }
 }

@@ -309,24 +309,21 @@ window._dashboardSubs = null;
 document.getElementById('dashUserCard').innerHTML = '';
 document.getElementById('historyList').innerHTML = '<div class="empty-history">加载中...</div>';
 
-// Load submissions — try Deno proxy first, fallback to GitHub raw
+// Load submissions — try clean GitHub file first (fast), fallback to Deno proxy
 var subs = [];
 var all = null;
+var CLEAN_URL = 'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions-clean.json';
+try {
+var rawResp = await fetch(CLEAN_URL);
+if (rawResp.ok) all = await rawResp.json();
+} catch(e) { console.warn('Clean file fetch failed, trying Deno proxy:', e.message); }
+
+// Fallback: Deno proxy (slower but has up-to-date data)
+if (!all || (Array.isArray(all) && all.length === 0)) {
 try {
 var resp = await fetch(API_URL);
 if (resp.ok) all = await resp.json();
-} catch(e) { console.warn('Proxy fetch failed, trying GitHub fallback:', e.message); }
-
-// Fallback: read directly from GitHub raw (works even when proxy is down)
-if (!all || (Array.isArray(all) && all.length === 0)) {
-try {
-var rawResp = await fetch(
-'https://raw.githubusercontent.com/haohao2006888/tongxingzhe-survey/main/data/submissions-clean.json'
-);
-if (rawResp.ok) {
-all = await rawResp.json();
-}
-} catch(e2) { console.error('GitHub fallback also failed:', e2.message); }
+} catch(e2) { console.error('Deno proxy also failed:', e2.message); }
 }
 
 if (all) {
@@ -373,7 +370,9 @@ if (!sub) return;
 
 // Re-fetch full submission with audio data (dashboard strips audio for speed)
 try {
-var resp = await fetch(API_URL);
+// Try clean file first (fast)
+var resp = await fetch(CLEAN_URL);
+if (!resp.ok) resp = await fetch(API_URL); // fallback to Deno proxy
 if (resp.ok) {
 var all = await resp.json();
 var full = all.find(function(s) {
